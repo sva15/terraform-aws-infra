@@ -11,18 +11,27 @@ This Terraform project deploys a complete full-stack application with AWS Lambda
 - **Layer Management**: Conditional layer attachment based on function requirements
 - **VPC Integration**: Deploy Lambda functions within existing VPC infrastructure
 - **CloudWatch Integration**: Automatic log group creation for each function
+- **SNS Integration**: Automatic topic creation and Lambda function subscriptions
 
 ### Frontend (Angular UI)
 - **Containerized Deployment**: Angular app deployed via Docker containers
 - **ECR Integration**: Automatic ECR repository creation and management
-- **EC2 Hosting**: UI served from EC2 instance with nginx
-- **Auto-scaling Ready**: Infrastructure prepared for load balancer integration
+- **Private EC2 Hosting**: UI served from EC2 instance (no public IP) with nginx
+- **RDS Integration**: Connects to managed PostgreSQL database
 - **Health Monitoring**: Built-in health checks and auto-restart capabilities
 
+### Database (RDS PostgreSQL)
+- **Managed Database**: AWS RDS PostgreSQL with automated backups
+- **SQL Backup Restoration**: Automatic restoration from S3 or local backup files
+- **Multi-AZ Support**: High availability configuration for production
+- **Performance Insights**: Enhanced monitoring and performance analysis
+- **Encryption**: KMS encryption for data at rest
+
 ### Infrastructure
-- **Modular Architecture**: Separate modules for backend, frontend, ECR, EC2, and S3
+- **Modular Architecture**: Separate modules for backend, frontend, ECR, EC2, S3, SNS, and RDS
 - **Consistent Tagging**: Global tagging strategy with project-level tags
-- **Security Best Practices**: Encrypted storage, IAM roles, and security groups
+- **Security Best Practices**: Encrypted storage, IAM roles, VPC isolation, and security groups
+- **Private Networking**: EC2 instances with no public IP for enhanced security
 
 ## Project Structure
 
@@ -60,11 +69,22 @@ This Terraform project deploys a complete full-stack application with AWS Lambda
 │   │   ├── variables.tf
 │   │   └── outputs.tf
 │   │
-│   └── ec2/                  # EC2 instance for UI hosting
+│   ├── ec2/                  # EC2 instance for UI hosting
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── outputs.tf
+│   │   └── user-data.sh
+│   │
+│   ├── sns/                  # SNS topics and subscriptions
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   │
+│   └── rds/                  # RDS PostgreSQL database
 │       ├── main.tf
 │       ├── variables.tf
 │       ├── outputs.tf
-│       └── user-data.sh
+│       └── db_restore.py
 │
 ├── backend/                  # Backend Lambda code
 │   ├── python-aws-lambda-functions/

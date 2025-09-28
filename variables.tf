@@ -170,3 +170,115 @@ variable "create_key_pair" {
   type        = bool
   default     = true
 }
+
+# SNS Configuration
+variable "sns_topic_names" {
+  description = "List of SNS topic names to create"
+  type        = list(string)
+  default     = []
+}
+
+variable "lambda_sns_subscriptions" {
+  description = "Map of Lambda function names to their SNS topic subscriptions"
+  type        = map(list(string))
+  default     = {}
+  # Example:
+  # {
+  #   "data-processor" = ["data-events", "file-upload"]
+  #   "notification-handler" = ["user-notifications", "system-alerts"]
+  # }
+}
+
+variable "enable_sns_encryption" {
+  description = "Enable SNS topic encryption"
+  type        = bool
+  default     = true
+}
+
+# AMI Configuration
+variable "ami_id" {
+  description = "Specific AMI ID to use (overrides ami_name_pattern if provided)"
+  type        = string
+  default     = ""
+}
+
+variable "ami_owner" {
+  description = "AMI owner (account ID for shared AMIs)"
+  type        = string
+  default     = "self"
+}
+
+variable "ami_name_pattern" {
+  description = "AMI name pattern to search for"
+  type        = string
+  default     = "ubuntu-*"
+}
+
+# Database Configuration
+variable "deploy_database" {
+  description = "Whether to deploy PostgreSQL and pgAdmin"
+  type        = bool
+  default     = true
+}
+
+variable "postgres_db_name" {
+  description = "PostgreSQL database name"
+  type        = string
+  default     = "ifrs_dev"
+}
+
+variable "postgres_user" {
+  description = "PostgreSQL username"
+  type        = string
+  default     = "ifrs_user"
+}
+
+variable "postgres_password" {
+  description = "PostgreSQL password"
+  type        = string
+  default     = "ifrs123"
+  sensitive   = true
+}
+
+variable "pgadmin_email" {
+  description = "pgAdmin default email"
+  type        = string
+  default     = "admin@example.com"
+}
+
+variable "pgadmin_password" {
+  description = "pgAdmin default password"
+  type        = string
+  default     = "admin123"
+  sensitive   = true
+}
+
+variable "postgres_port" {
+  description = "PostgreSQL port"
+  type        = number
+  default     = 5432
+}
+
+variable "pgadmin_port" {
+  description = "pgAdmin port"
+  type        = number
+  default     = 8080
+}
+
+variable "sql_backup_s3_bucket" {
+  description = "S3 bucket containing SQL backup file"
+  type        = string
+  default     = ""
+}
+
+variable "sql_backup_s3_key" {
+  description = "S3 key for SQL backup file"
+  type        = string
+  default     = ""
+}
+
+variable "sql_backup_local_path" {
+  description = "Local path to SQL backup file"
+  type        = string
+  default     = ""
+}

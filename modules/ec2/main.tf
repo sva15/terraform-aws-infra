@@ -6,8 +6,9 @@ locals {
   key_pair_name = var.key_pair_name != "" ? var.key_pair_name : "${local.env_prefix}${var.project_name}-ui-keypair"
 }
 
-# Data source for AMI
-data "aws_ami" "amazon_linux" {
+# Data source for AMI (only if ami_id is not provided)
+data "aws_ami" "selected" {
+  count       = var.ami_id == "" ? 1 : 0
   most_recent = true
   owners      = [var.ami_owner]
   
@@ -111,9 +112,20 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 # User data script for EC2 instance
 locals {
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
-    ecr_repository_url = var.ecr_repository_url
-    container_port     = var.ui_container_port
-    aws_region        = data.aws_region.current.name
+    ecr_repository_url    = var.ecr_repository_url
+    container_port        = var.ui_container_port
+    aws_region           = data.aws_region.current.name
+    deploy_database      = var.deploy_database
+    postgres_db_name     = var.postgres_db_name
+    postgres_user        = var.postgres_user
+    postgres_password    = var.postgres_password
+    pgadmin_email        = var.pgadmin_email
+    pgadmin_password     = var.pgadmin_password
+    postgres_port        = var.postgres_port
+    pgadmin_port         = var.pgadmin_port
+    sql_backup_s3_bucket = var.sql_backup_s3_bucket
+    sql_backup_s3_key    = var.sql_backup_s3_key
+    sql_backup_local_path = var.sql_backup_local_path
   }))
 }
 
@@ -122,12 +134,13 @@ data "aws_region" "current" {}
 
 # EC2 Instance
 resource "aws_instance" "ui_server" {
-  ami                    = data.aws_ami.amazon_linux.id
+  ami                    = var.ami_id != "" ? var.ami_id : data.aws_ami.selected[0].id
   instance_type          = var.instance_type
   key_name              = var.create_key_pair ? aws_key_pair.ec2_key_pair[0].key_name : var.key_pair_name
-  vpc_security_group_ids = var.security_group_ids
-  subnet_id             = var.subnet_id
-  iam_instance_profile  = aws_iam_instance_profile.ec2_profile.name
+  vpc_security_group_ids      = var.security_group_ids
+  subnet_id                   = var.subnet_id
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  associate_public_ip_address = false
   
   user_data = local.user_data
   

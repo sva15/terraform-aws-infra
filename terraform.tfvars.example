@@ -48,6 +48,25 @@ lambda_layer_mappings = {
   "notification-handler" = ["requests-layer"]
 }
 
+# SNS Configuration
+sns_topic_names = [
+  "data-events",
+  "file-upload",
+  "user-notifications",
+  "system-alerts",
+  "processing-status"
+]
+
+# SNS Subscriptions - Define which Lambda functions subscribe to which topics
+lambda_sns_subscriptions = {
+  "data-processor" = ["data-events", "file-upload"]
+  "api-handler" = ["user-notifications"]
+  "ml-inference" = ["data-events", "processing-status"]
+  "notification-handler" = ["user-notifications", "system-alerts"]
+}
+
+enable_sns_encryption = true
+
 # Additional Tags
 additional_tags = {
   Owner       = "DataTeam"
@@ -69,3 +88,24 @@ ecr_repositories = ["angular-ui", "nginx-alpine"]
 # EC2 Configuration
 instance_type = "t3.micro"
 create_key_pair = true
+
+# AMI Configuration (for shared custom AMIs)
+ami_id = ""  # Specific AMI ID (leave empty to use ami_name_pattern)
+ami_owner = "123456789012"  # Replace with the account ID that shared the AMI
+ami_name_pattern = "ubuntu-*"  # Pattern to search for Ubuntu-based AMIs
+
+# Database Configuration (RDS PostgreSQL)
+deploy_database = true
+postgres_db_name = "ifrs_dev"
+postgres_user = "ifrs_user"
+postgres_password = "ifrs123"
+postgres_port = 5432
+# Note: pgAdmin is not deployed with RDS - use external tools or deploy separately
+
+# SQL Backup Configuration (choose one method)
+# Option 1: S3 backup
+sql_backup_s3_bucket = ""  # S3 bucket containing backup file
+sql_backup_s3_key = ""     # S3 key for backup file (e.g., "backups/ifrs_backup.sql")
+
+# Option 2: Local backup
+sql_backup_local_path = ""  # Local path to SQL backup file

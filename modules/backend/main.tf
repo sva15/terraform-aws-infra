@@ -66,3 +66,22 @@ resource "aws_s3_object" "lambda_layers" {
     Module = "backend"
   })
 }
+
+# SNS Module for topic creation and Lambda subscriptions
+module "sns" {
+  source = "../sns"
+  
+  environment               = var.environment
+  project_name             = var.project_name
+  lambda_prefix            = var.lambda_prefix
+  topic_names              = var.sns_topic_names
+  enable_encryption        = var.enable_sns_encryption
+  lambda_function_arns     = {
+    for name, func in aws_lambda_function.functions :
+    name => func.arn
+  }
+  lambda_sns_subscriptions = var.lambda_sns_subscriptions
+  common_tags              = var.common_tags
+  
+  depends_on = [aws_lambda_function.functions]
+}

@@ -35,3 +35,12 @@ output "iam_role_arn" {
   description = "IAM role ARN for Lambda functions"
   value       = aws_iam_role.lambda_execution_role.arn
 }
+
+output "sns_topics" {
+  description = "SNS topics information"
+  value = {
+    topic_arns        = module.sns.topic_arns
+    topic_names       = module.sns.topic_names
+    subscriptions     = module.sns.subscriptions_summary
+  }
+}

@@ -6,8 +6,8 @@ output "instance_id" {
 }
 
 output "instance_public_ip" {
-  description = "Public IP address of the EC2 instance"
-  value       = aws_instance.ui_server.public_ip
+  description = "Public IP address of the EC2 instance (null - no public IP assigned)"
+  value       = null
 }
 
 output "instance_private_ip" {
@@ -16,8 +16,8 @@ output "instance_private_ip" {
 }
 
 output "instance_public_dns" {
-  description = "Public DNS name of the EC2 instance"
-  value       = aws_instance.ui_server.public_dns
+  description = "Public DNS name of the EC2 instance (null - no public IP assigned)"
+  value       = null
 }
 
 output "key_pair_name" {
@@ -34,4 +34,15 @@ output "private_key_filename" {
 output "security_group_ids" {
   description = "Security group IDs attached to the instance"
   value       = var.security_group_ids
+}
+
+output "database_info" {
+  description = "Database connection information (RDS will be used instead of local PostgreSQL)"
+  value       = null
+  sensitive   = true
+}
+
+output "ami_used" {
+  description = "AMI ID used for the EC2 instance"
+  value       = var.ami_id != "" ? var.ami_id : (length(data.aws_ami.selected) > 0 ? data.aws_ami.selected[0].id : null)
 }

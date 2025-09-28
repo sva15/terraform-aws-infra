@@ -103,6 +103,25 @@ variable "lambda_layer_mappings" {
   default     = {}
 }
 
+# SNS Configuration
+variable "sns_topic_names" {
+  description = "List of SNS topic names to create"
+  type        = list(string)
+  default     = []
+}
+
+variable "lambda_sns_subscriptions" {
+  description = "Map of Lambda function names to their SNS topic subscriptions"
+  type        = map(list(string))
+  default     = {}
+}
+
+variable "enable_sns_encryption" {
+  description = "Enable SNS topic encryption"
+  type        = bool
+  default     = true
+}
+
 # Common tags
 variable "common_tags" {
   description = "Common tags to apply to all resources"
