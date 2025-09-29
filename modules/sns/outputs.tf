@@ -48,8 +48,8 @@ output "subscriptions_summary" {
     for key, item in local.subscriptions_map :
     key => {
       lambda_function = item.lambda_name
-      topic_name     = item.topic_name
-      topic_arn      = aws_sns_topic.topics[item.topic_name].arn
+      topic_name      = item.topic_name
+      topic_arn       = aws_sns_topic.topics[item.topic_name].arn
     }
   }
 }

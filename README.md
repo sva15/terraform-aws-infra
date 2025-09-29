@@ -22,16 +22,48 @@ This Terraform project deploys a complete full-stack application with AWS Lambda
 
 ### Database (RDS PostgreSQL)
 - **Managed Database**: AWS RDS PostgreSQL with automated backups
+- **Secrets Manager Integration**: Secure password management with AWS Secrets Manager
 - **SQL Backup Restoration**: Automatic restoration from S3 or local backup files
 - **Multi-AZ Support**: High availability configuration for production
 - **Performance Insights**: Enhanced monitoring and performance analysis
-- **Encryption**: KMS encryption for data at rest
+- **Encryption**: KMS encryption for data at rest and credentials
 
 ### Infrastructure
 - **Modular Architecture**: Separate modules for backend, frontend, ECR, EC2, S3, SNS, and RDS
 - **Consistent Tagging**: Global tagging strategy with project-level tags
-- **Security Best Practices**: Encrypted storage, IAM roles, VPC isolation, and security groups
+- **Security Best Practices**: Encrypted storage, standardized IAM roles, VPC isolation, and security groups
 - **Private Networking**: EC2 instances with no public IP for enhanced security
+- **IAM Role Standards**: All roles follow `HCL-User-Role-insightgen-servicename` naming convention
+
+## Security Features
+
+### Password Management
+- **AWS Secrets Manager**: RDS passwords are automatically generated and stored securely
+- **No Plain Text**: Passwords never appear in Terraform state or logs
+- **Automatic Rotation**: Support for automatic password rotation (configurable)
+
+### Network Security
+- **Private Subnets**: RDS and EC2 instances deployed in private subnets
+- **Access Control**:
+  - **IAM Roles**: Least privilege access with service-specific roles
+  - **Standardized Naming**: All IAM roles follow `HCL-User-Role-insightgen-servicename` pattern
+  - **Resource Isolation**: Clear boundaries between different services
+  - **Policy Segregation**: Separate policies for different access patterns
+
+### IAM Role Naming Convention
+All IAM roles in this project follow a standardized naming pattern:
+- **Pattern**: `HCL-User-Role-insightgen-servicename`
+- **Examples**:
+  - `HCL-User-Role-insightgen-lambda-execution` (Backend Lambda functions)
+  - `HCL-User-Role-insightgen-ec2-ui` (EC2 instance for UI hosting)
+  - `HCL-User-Role-insightgen-rds-monitoring` (RDS enhanced monitoring)
+  - `HCL-User-Role-insightgen-db-restore-lambda` (Database restore Lambda)
+
+### Encryption
+- **Data at Rest**: RDS storage encrypted with KMS
+- **Data in Transit**: SSL/TLS encryption for database connections
+- **Secrets Encryption**: Secrets Manager uses KMS encryption
+- **EBS Encryption**: EC2 instance storage encrypted
 
 ## Project Structure
 
@@ -186,6 +218,28 @@ terraform output quick_access
 
 ## Configuration
 
+Copy `terraform.tfvars.example` to `terraform.tfvars` and customize the values:
+
+### Database Security Configuration
+
+**Recommended (Secrets Manager):**
+```hcl
+use_secrets_manager = true  # Default: true
+postgres_password = ""      # Not needed when using Secrets Manager
+```
+
+**Legacy (Plain Text Password):**
+```hcl
+use_secrets_manager = false
+postgres_password = "your-secure-password"
+```
+
+When `use_secrets_manager = true`:
+- RDS automatically generates a secure password
+- Password is stored in AWS Secrets Manager
+- Lambda functions retrieve password securely
+- No passwords in Terraform state or logs
+
 ### Environment Naming
 
 The project automatically handles environment-specific naming:
@@ -245,6 +299,9 @@ lambda_layers_s3_bucket = "existing-layers-bucket"
 | `use_local_source` | Use local files vs S3 | `true` |
 | `create_s3_bucket` | Create S3 bucket for uploads | `true` |
 | `lambda_layer_mappings` | Function to layer mappings | `{}` |
+| `use_secrets_manager` | Use AWS Secrets Manager for RDS password | `true` |
+| `postgres_password` | RDS password (only if secrets manager disabled) | `""` |
+| `deploy_database` | Whether to deploy RDS database | `true` |
 
 ## Outputs
 
@@ -256,14 +313,24 @@ The deployment provides comprehensive outputs:
 - **S3 Bucket**: Bucket information (if created)
 - **IAM Role**: Execution role details
 - **VPC Configuration**: Network configuration used
+- **RDS Database**: Connection information and instance details
+- **Secrets Manager**: Secret ARNs for database credentials
+- **ECR Repositories**: Container registry URLs
+- **EC2 Instance**: Instance details and connection information
 
 ## Best Practices
 
-1. **Layer Organization**: Group related dependencies in layers (e.g., data processing, API clients)
-2. **Function Naming**: Use descriptive names for zip files as they become function names
-3. **Environment Separation**: Use separate AWS accounts or regions for different environments
-4. **Tagging**: Leverage the global tagging strategy for cost allocation and resource management
-5. **Security**: Review IAM policies and VPC configurations for your specific use case
+1. **Security First**: Always use `use_secrets_manager = true` for production deployments
+2. **IAM Role Naming**: Follow the `HCL-User-Role-insightgen-servicename` naming convention for all IAM roles
+3. **Layer Organization**: Group related dependencies in layers (e.g., data processing, API clients)
+4. **Function Naming**: Use descriptive names for zip files as they become function names
+5. **Environment Separation**: Use separate AWS accounts or regions for different environments
+6. **Tagging**: Leverage the global tagging strategy for cost allocation and resource management
+7. **Network Security**: Deploy resources in private subnets with restrictive security groups
+8. **Encryption**: Enable encryption for all data at rest and in transit
+9. **Access Control**: Use IAM roles with least privilege principles
+10. **Monitoring**: Enable CloudWatch logging and monitoring for all resources
+11. **Backup Strategy**: Configure appropriate backup retention periods for production
 
 ## Troubleshooting
 
@@ -273,6 +340,8 @@ The deployment provides comprehensive outputs:
 2. **Zip File Not Found**: Ensure zip files exist in the specified directories
 3. **Layer Not Attached**: Check that layer names in mappings match actual layer file names
 4. **Permission Denied**: Verify AWS credentials and IAM permissions
+5. **Database Connection Failed**: Check if Lambda has Secrets Manager permissions
+6. **Secret Not Found**: Verify RDS instance was created with managed password enabled
 
 ### Debugging
 
@@ -285,6 +354,15 @@ terraform validate
 
 # Check AWS resources
 aws lambda list-functions --query 'Functions[?starts_with(FunctionName, `dev-insightgen-`)]'
+
+# Check RDS instances
+aws rds describe-db-instances --query 'DBInstances[?starts_with(DBInstanceIdentifier, `dev-insightgen-`)]'
+
+# Check Secrets Manager secrets
+aws secretsmanager list-secrets --query 'SecretList[?starts_with(Name, `dev-insightgen-`)]'
+
+# Test database connectivity (from Lambda)
+aws lambda invoke --function-name dev-insightgen-db-restore response.json
 ```
 
 ## Customization

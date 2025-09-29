@@ -111,10 +111,13 @@ output "restore_lambda_function" {
 output "connection_info" {
   description = "Database connection information"
   value = {
-    endpoint = aws_db_instance.main.endpoint
-    port     = aws_db_instance.main.port
-    database = aws_db_instance.main.db_name
-    username = aws_db_instance.main.username
+    endpoint              = aws_db_instance.main.endpoint
+    port                  = aws_db_instance.main.port
+    database              = aws_db_instance.main.db_name
+    username              = aws_db_instance.main.username
+    password_secret_arn   = var.use_secrets_manager ? aws_db_instance.main.master_user_secret[0].secret_arn : null
+    password_secret_name  = var.use_secrets_manager ? aws_db_instance.main.master_user_secret[0].secret_name : null
+    using_secrets_manager = var.use_secrets_manager
   }
   sensitive = true
 }
@@ -123,9 +126,9 @@ output "backup_info" {
   description = "Backup configuration information"
   value = {
     backup_retention_period = var.backup_retention_period
-    backup_window          = var.backup_window
-    maintenance_window     = var.maintenance_window
-    multi_az              = var.multi_az
-    storage_encrypted     = var.storage_encrypted
+    backup_window           = var.backup_window
+    maintenance_window      = var.maintenance_window
+    multi_az                = var.multi_az
+    storage_encrypted       = var.storage_encrypted
   }
 }

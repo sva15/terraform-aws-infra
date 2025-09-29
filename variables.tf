@@ -11,7 +11,7 @@ variable "environment" {
 variable "project_name" {
   description = "Project name for tagging and naming"
   type        = string
-  default     = "IMRS-InsightGen"
+  default     = "IFRS-InsightGen"
 }
 
 variable "lambda_prefix" {
@@ -90,7 +90,7 @@ variable "public_subnet_names" {
 variable "lambda_runtime" {
   description = "Runtime for Lambda functions"
   type        = string
-  default     = "python3.9"
+  default     = "python3.12"
 }
 
 variable "lambda_timeout" {
@@ -233,11 +233,17 @@ variable "postgres_user" {
   default     = "ifrs_user"
 }
 
+variable "use_secrets_manager" {
+  description = "Whether to use AWS Secrets Manager for RDS password management"
+  type        = bool
+  default     = true
+}
+
 variable "postgres_password" {
-  description = "PostgreSQL password"
+  description = "PostgreSQL password (only used if use_secrets_manager is false)"
   type        = string
-  default     = "ifrs123"
   sensitive   = true
+  default     = ""
 }
 
 variable "pgadmin_email" {

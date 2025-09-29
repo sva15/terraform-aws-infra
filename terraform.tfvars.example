@@ -2,7 +2,7 @@
 environment = "dev"  # Options: dev, int, prod
 
 # Project Configuration
-project_name = "IMRS-InsightGen"
+project_name = "IFRS-InsightGen"
 lambda_prefix = "insightgen"
 
 # Source Configuration
@@ -21,55 +21,46 @@ lambda_layers_local_path = "./backend/lambda-layers"
 s3_bucket_name = ""
 
 # VPC Configuration
-vpc_name = "my-vpc"
+vpc_name = "default"
 subnet_names = [
   "private-subnet-1",
   "private-subnet-2"
 ]
 security_group_names = [
-  "lambda-security-group"
+  "default"
 ]
 public_subnet_names = [
   "public-subnet-1",
   "public-subnet-2"
 ]
-
 # Lambda Configuration
-lambda_runtime = "python3.9"
+lambda_runtime = "python3.12"
 lambda_timeout = 300
 lambda_memory_size = 512
 
-# Layer Mappings - Define which layers each Lambda function should use
+# Lambda Layer Mappings (which layers each function should use)
 lambda_layer_mappings = {
-  "data-processor" = ["pandas-layer", "numpy-layer"]
-  "api-handler" = ["requests-layer", "boto3-layer"]
-  "ml-inference" = ["sklearn-layer", "pandas-layer", "numpy-layer"]
-  "file-processor" = ["pandas-layer"]
-  "notification-handler" = ["requests-layer"]
+  "alb-lambda" = ["alb-layer"]
+  "sns-lambda" = ["sns-layer"]
+  # Add more mappings as needed
+  # "function_name" = ["layer1", "layer2"]
 }
-
-# SNS Configuration
 sns_topic_names = [
-  "data-events",
-  "file-upload",
-  "user-notifications",
-  "system-alerts",
-  "processing-status"
+  "sns-lambda-topic"
 ]
 
 # SNS Subscriptions - Define which Lambda functions subscribe to which topics
 lambda_sns_subscriptions = {
-  "data-processor" = ["data-events", "file-upload"]
-  "api-handler" = ["user-notifications"]
-  "ml-inference" = ["data-events", "processing-status"]
-  "notification-handler" = ["user-notifications", "system-alerts"]
+  "sns-lambda" = ["sns-lambda-topic"]
+  # Add more subscriptions as needed
+  # "function_name" = ["topic1", "topic2"]
 }
 
 enable_sns_encryption = true
 
 # Additional Tags
 additional_tags = {
-  Owner       = "DataTeam"
+  Owner       = "IFRS"
   CostCenter  = "Engineering"
   Application = "InsightGen"
 }
@@ -90,22 +81,27 @@ instance_type = "t3.micro"
 create_key_pair = true
 
 # AMI Configuration (for shared custom AMIs)
-ami_id = ""  # Specific AMI ID (leave empty to use ami_name_pattern)
-ami_owner = "123456789012"  # Replace with the account ID that shared the AMI
+ami_id = "ami-02d26659fd82cf299"  # Specific AMI ID (leave empty to use ami_name_pattern)
+ami_owner = "099720109477"  # Replace with the account ID that shared the AMI
 ami_name_pattern = "ubuntu-*"  # Pattern to search for Ubuntu-based AMIs
 
 # Database Configuration (RDS PostgreSQL)
 deploy_database = true
 postgres_db_name = "ifrs_dev"
 postgres_user = "ifrs_user"
-postgres_password = "ifrs123"
 postgres_port = 5432
-# Note: pgAdmin is not deployed with RDS - use external tools or deploy separately
+
+# Password Management
+use_secrets_manager = true  # Recommended: Use AWS Secrets Manager for password
+postgres_password = ""      # Only required if use_secrets_manager = false
+
+# Note: When use_secrets_manager = true, RDS will automatically generate and store
+# the password in AWS Secrets Manager. This is the recommended approach for security.
 
 # SQL Backup Configuration (choose one method)
 # Option 1: S3 backup
 sql_backup_s3_bucket = ""  # S3 bucket containing backup file
 sql_backup_s3_key = ""     # S3 key for backup file (e.g., "backups/ifrs_backup.sql")
 
-# Option 2: Local backup
-sql_backup_local_path = ""  # Local path to SQL backup file
+# Option 2: Local backup (recommended for development)
+sql_backup_local_path = "database/pg_backup/ifrs_backup_20250928_144411.sql"  # Local path to SQL backup file

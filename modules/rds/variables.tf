@@ -45,10 +45,16 @@ variable "db_username" {
 }
 
 variable "db_password" {
-  description = "Password for the master DB user"
+  description = "Password for the RDS instance (only used if use_secrets_manager is false)"
   type        = string
-  default     = "ifrs123"
   sensitive   = true
+  default     = ""
+}
+
+variable "use_secrets_manager" {
+  description = "Whether to use AWS Secrets Manager for RDS password management"
+  type        = bool
+  default     = true
 }
 
 variable "db_port" {

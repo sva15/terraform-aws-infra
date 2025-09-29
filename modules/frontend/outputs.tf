@@ -16,12 +16,12 @@ output "ui_s3_bucket" {
 output "ec2_instance" {
   description = "EC2 instance information"
   value = {
-    instance_id       = module.ec2.instance_id
-    public_ip        = module.ec2.instance_public_ip
-    private_ip       = module.ec2.instance_private_ip
-    public_dns       = module.ec2.instance_public_dns
-    key_pair_name    = module.ec2.key_pair_name
-    ami_used         = module.ec2.ami_used
+    instance_id   = module.ec2.instance_id
+    public_ip     = module.ec2.instance_public_ip
+    private_ip    = module.ec2.instance_private_ip
+    public_dns    = module.ec2.instance_public_dns
+    key_pair_name = module.ec2.key_pair_name
+    ami_used      = module.ec2.ami_used
   }
 }
 
@@ -39,14 +39,14 @@ output "database_info" {
 output "rds_info" {
   description = "Complete RDS instance information"
   value = {
-    instance_id       = module.rds.db_instance_id
-    endpoint         = module.rds.db_instance_endpoint
-    port            = module.rds.db_instance_port
-    database_name   = module.rds.db_instance_name
-    engine          = module.rds.db_instance_engine
-    engine_version  = module.rds.db_instance_engine_version
-    instance_class  = module.rds.db_instance_class
-    status          = module.rds.db_instance_status
+    instance_id    = module.rds.db_instance_id
+    endpoint       = module.rds.db_instance_endpoint
+    port           = module.rds.db_instance_port
+    database_name  = module.rds.db_instance_name
+    engine         = module.rds.db_instance_engine
+    engine_version = module.rds.db_instance_engine_version
+    instance_class = module.rds.db_instance_class
+    status         = module.rds.db_instance_status
   }
   sensitive = true
 }

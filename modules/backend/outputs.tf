@@ -5,9 +5,9 @@ output "lambda_functions" {
   value = {
     for name, func in aws_lambda_function.functions : name => {
       function_name = func.function_name
-      arn          = func.arn
-      invoke_arn   = func.invoke_arn
-      version      = func.version
+      arn           = func.arn
+      invoke_arn    = func.invoke_arn
+      version       = func.version
     }
   }
 }
@@ -39,8 +39,8 @@ output "iam_role_arn" {
 output "sns_topics" {
   description = "SNS topics information"
   value = {
-    topic_arns        = module.sns.topic_arns
-    topic_names       = module.sns.topic_names
-    subscriptions     = module.sns.subscriptions_summary
+    topic_arns    = module.sns.topic_arns
+    topic_names   = module.sns.topic_names
+    subscriptions = module.sns.subscriptions_summary
   }
 }

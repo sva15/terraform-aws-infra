@@ -9,17 +9,72 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+def get_secret(secret_name, region_name):
+    """
+    Retrieve secret from AWS Secrets Manager
+    """
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+    
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+        secret = json.loads(get_secret_value_response['SecretString'])
+        return secret
+    except ClientError as e:
+        logger.error(f"Error retrieving secret {secret_name}: {str(e)}")
+        raise e
+
+def get_database_credentials():
+    """
+    Get database credentials from environment variables or Secrets Manager
+    """
+    use_secrets_manager = os.environ.get('USE_SECRETS_MANAGER', 'true').lower() == 'true'
+    
+    if use_secrets_manager:
+        # Get credentials from Secrets Manager
+        secret_name = os.environ.get('DB_SECRET_NAME')
+        region = os.environ.get('AWS_REGION', 'us-east-1')
+        
+        if not secret_name:
+            raise ValueError("DB_SECRET_NAME environment variable is required when using Secrets Manager")
+        
+        logger.info(f"Retrieving database credentials from Secrets Manager: {secret_name}")
+        secret = get_secret(secret_name, region)
+        
+        return {
+            'host': secret.get('host', os.environ.get('RDS_HOST')),
+            'port': secret.get('port', os.environ.get('RDS_PORT', '5432')),
+            'database': secret.get('dbname', os.environ.get('RDS_DB_NAME')),
+            'username': secret.get('username', os.environ.get('RDS_USERNAME')),
+            'password': secret['password']
+        }
+    else:
+        # Use environment variables (legacy method)
+        logger.info("Using database credentials from environment variables")
+        return {
+            'host': os.environ.get('RDS_HOST'),
+            'port': os.environ.get('RDS_PORT', '5432'),
+            'database': os.environ.get('RDS_DB_NAME'),
+            'username': os.environ.get('RDS_USERNAME'),
+            'password': os.environ.get('RDS_PASSWORD')
+        }
+
 def handler(event, context):
     """
     Lambda function to restore PostgreSQL database from S3 backup
     """
     try:
-        # Get environment variables
-        rds_endpoint = os.environ['RDS_ENDPOINT']
-        rds_port = int(os.environ['RDS_PORT'])
-        db_name = os.environ['DB_NAME']
-        db_username = os.environ['DB_USERNAME']
-        db_password = os.environ['DB_PASSWORD']
+        # Get database credentials
+        db_credentials = get_database_credentials()
+        
+        rds_endpoint = db_credentials['host']
+        rds_port = int(db_credentials['port'])
+        db_name = db_credentials['database']
+        db_username = db_credentials['username']
+        db_password = db_credentials['password']
         s3_bucket = os.environ.get('S3_BUCKET', '')
         s3_key = os.environ.get('S3_KEY', '')
         

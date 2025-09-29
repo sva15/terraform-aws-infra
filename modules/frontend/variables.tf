@@ -107,11 +107,17 @@ variable "postgres_user" {
   default     = "ifrs_user"
 }
 
+variable "use_secrets_manager" {
+  description = "Whether to use AWS Secrets Manager for RDS password management"
+  type        = bool
+  default     = true
+}
+
 variable "postgres_password" {
-  description = "PostgreSQL password"
+  description = "PostgreSQL password (only used if use_secrets_manager is false)"
   type        = string
-  default     = "ifrs123"
   sensitive   = true
+  default     = ""
 }
 
 variable "pgadmin_email" {
