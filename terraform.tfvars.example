@@ -10,15 +10,15 @@ use_local_source = true  # Set to false to use S3 sources
 create_s3_bucket = true  # Create S3 bucket for uploading local files
 
 # S3 Configuration (when use_local_source = false)
-lambda_code_s3_bucket = ""     # S3 bucket containing Lambda code
-lambda_layers_s3_bucket = ""   # S3 bucket containing Lambda layers
+lambda_code_s3_bucket = "insightgen-us-east-1-uploads"     # S3 bucket containing Lambda code
+lambda_layers_s3_bucket = "insightgen-us-east-1-uploads"   # S3 bucket containing Lambda layers
 
 # Local Paths (when use_local_source = true)
 lambda_code_local_path = "./backend/python-aws-lambda-functions"
 lambda_layers_local_path = "./backend/lambda-layers"
 
 # S3 Bucket Name (optional - will be auto-generated if not provided)
-s3_bucket_name = ""
+s3_bucket_name = "insightgen-us-east-1-uploads"
 
 # VPC Configuration
 vpc_name = "default"
@@ -70,19 +70,23 @@ aws_region = "us-east-1"
 
 # Frontend/UI Configuration
 use_local_ui_source = true  # Set to false to use existing S3 bucket
-ui_assets_local_path = "./ui/dist"  # Path to Angular build output
-ui_s3_bucket = ""  # S3 bucket for UI assets (when use_local_ui_source = false)
 
 # ECR Configuration
 ecr_repositories = ["angular-ui", "nginx-alpine"]
 
-# EC2 Configuration
+# Frontend Configuration
 instance_type = "t3.micro"
 create_key_pair = true
 
+# UI Build Configuration
+use_local_ui_source = false  # Set to true to use local UI build
+ui_s3_bucket = "insightgen-us-east-1-uploads"  # S3 bucket containing UI build
+ui_s3_key_prefix = "ifrs-ui-build/"  # S3 key prefix for UI build files
+ui_assets_local_path = ""  # Local path to UI build (leave empty when using S3)
+
 # AMI Configuration (for shared custom AMIs)
 ami_id = "ami-02d26659fd82cf299"  # Specific AMI ID (leave empty to use ami_name_pattern)
-ami_owner = "099720109477"  # Replace with the account ID that shared the AMI
+ami_owner = "099720109477"  # replace with the account ID that shared the AMI
 ami_name_pattern = "ubuntu-*"  # Pattern to search for Ubuntu-based AMIs
 
 # Database Configuration (RDS PostgreSQL)
@@ -99,9 +103,9 @@ postgres_password = ""      # Only required if use_secrets_manager = false
 # the password in AWS Secrets Manager. This is the recommended approach for security.
 
 # SQL Backup Configuration (choose one method)
-# Option 1: S3 backup
-sql_backup_s3_bucket = ""  # S3 bucket containing backup file
-sql_backup_s3_key = ""     # S3 key for backup file (e.g., "backups/ifrs_backup.sql")
+# Option 1: S3 backup (recommended for production)
+sql_backup_s3_bucket = "insightgen-us-east-1-uploads"  # S3 bucket containing backup file
+sql_backup_s3_key = "postgres/backups/postgres_backup_20250930_030232.sql"     # S3 key for backup file
 
-# Option 2: Local backup (recommended for development)
-sql_backup_local_path = "database/pg_backup/ifrs_backup_20250928_144411.sql"  # Local path to SQL backup file
+# Option 2: Local backup (for development only)
+sql_backup_local_path = ""  # Local path to SQL backup file (leave empty when using S3)
