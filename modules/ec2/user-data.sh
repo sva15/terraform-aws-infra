@@ -15,7 +15,7 @@ date
 export S3_BUCKET="${s3_bucket}"
 export S3_KEY="${s3_key}"
 export UI_PATH="${ui_path}"
-export BASE_URL="${base_url}"
+export BASE_URL="${BASE_URL}"
 
 echo "Configuration:"
 echo "  S3_BUCKET: $S3_BUCKET"
