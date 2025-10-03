@@ -49,6 +49,24 @@ variable "ui_s3_bucket" {
   default     = ""
 }
 
+variable "ui_s3_key" {
+  description = "S3 key for UI build zip file"
+  type        = string
+  default     = "ifrs-ui-build.zip"
+}
+
+variable "ui_path" {
+  description = "UI path for nginx routing (e.g., 'ui', 'app', 'dashboard')"
+  type        = string
+  default     = "ui"
+}
+
+variable "base_url" {
+  description = "Base URL for the UI application (runtime environment variable)"
+  type        = string
+  default     = ""
+}
+
 # ECR Configuration
 variable "ecr_repositories" {
   description = "List of ECR repository names to create"

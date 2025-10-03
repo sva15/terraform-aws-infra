@@ -146,3 +146,27 @@ variable "common_tags" {
   type        = map(string)
   default     = {}
 }
+
+# UI Configuration
+variable "ui_s3_bucket" {
+  description = "S3 bucket name containing UI build"
+  type        = string
+}
+
+variable "ui_s3_key" {
+  description = "S3 key for UI build zip file"
+  type        = string
+  default     = "ifrs-ui-build.zip"
+}
+
+variable "ui_path" {
+  description = "UI path for nginx routing"
+  type        = string
+  default     = "ui"
+}
+
+variable "base_url" {
+  description = "Base URL for the UI application"
+  type        = string
+  default     = ""
+}

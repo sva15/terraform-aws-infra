@@ -124,6 +124,9 @@ module "frontend" {
   use_local_ui_source  = var.use_local_ui_source
   ui_assets_local_path = var.ui_assets_local_path
   ui_s3_bucket         = var.ui_s3_bucket
+  ui_s3_key            = var.ui_s3_key
+  ui_path              = var.ui_path
+  base_url             = var.base_url
   ecr_repositories     = var.ecr_repositories
   instance_type        = var.instance_type
   create_key_pair      = var.create_key_pair

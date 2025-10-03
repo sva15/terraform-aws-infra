@@ -77,9 +77,9 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
-# IAM policy for ECR access
-resource "aws_iam_role_policy" "ecr_policy" {
-  name = "${local.env_prefix}${var.project_name}-ui-ecr-policy"
+# IAM policy for S3 and ECR access
+resource "aws_iam_role_policy" "ec2_policy" {
+  name = "${local.env_prefix}${var.project_name}-ui-ec2-policy"
   role = aws_iam_role.ec2_role.id
 
   policy = jsonencode({
@@ -94,6 +94,17 @@ resource "aws_iam_role_policy" "ecr_policy" {
           "ecr:BatchGetImage"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::${var.ui_s3_bucket}",
+          "arn:aws:s3:::${var.ui_s3_bucket}/*"
+        ]
       }
     ]
   })
@@ -113,8 +124,10 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 # User data script for EC2 instance
 locals {
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
-    ecr_repository_url    = var.ecr_repository_url
-    container_port        = var.ui_container_port
+    s3_bucket             = var.ui_s3_bucket
+    s3_key                = var.ui_s3_key
+    ui_path               = var.ui_path
+    base_url              = var.base_url
     aws_region            = data.aws_region.current.name
     deploy_database       = var.deploy_database
     postgres_db_name      = var.postgres_db_name

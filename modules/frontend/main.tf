@@ -33,6 +33,12 @@ module "ec2" {
   create_key_pair    = var.create_key_pair
   ecr_repository_url = module.ecr.repository_urls["angular-ui"]
 
+  # UI Configuration
+  ui_s3_bucket = var.ui_s3_bucket
+  ui_s3_key    = var.ui_s3_key
+  ui_path      = var.ui_path
+  base_url     = var.base_url
+
   # AMI Configuration
   ami_id           = var.ami_id
   ami_owner        = var.ami_owner

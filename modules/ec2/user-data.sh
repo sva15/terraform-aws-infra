@@ -1,148 +1,178 @@
 #!/bin/bash
 
+# EC2 User Data Script for IFRS UI Setup
+
+set -e
+
 # Log all output
 exec > >(tee /var/log/user-data.log)
 exec 2>&1
 
-echo "Starting user-data script execution..."
+echo "=== Starting IFRS UI Setup ==="
+date
 
-# Update system
+# Configuration variables (replaced by Terraform)
+export S3_BUCKET="${s3_bucket}"
+export S3_KEY="${s3_key}"
+export UI_PATH="${ui_path}"
+export BASE_URL="${base_url}"
+
+echo "Configuration:"
+echo "  S3_BUCKET: $S3_BUCKET"
+echo "  S3_KEY: $S3_KEY"
+echo "  UI_PATH: $UI_PATH"
+echo "  BASE_URL: $BASE_URL"
+
+# Install prerequisites
+echo "Installing prerequisites..."
 apt-get update -y
-apt-get upgrade -y
-
-# Install required packages
-apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release \
-    unzip \
-    postgresql-client
-
-# Install Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update -y
-apt-get install -y docker-ce docker-ce-cli containerd.io
-
-# Install Docker Compose
-curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
-
-# Start and enable Docker
+apt-get install -y docker.io awscli unzip
 systemctl start docker
 systemctl enable docker
-usermod -aG docker ubuntu
 
-# Install AWS CLI v2
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-./aws/install
-rm -rf aws awscliv2.zip
+# Create working directory
+mkdir -p /opt/ifrs-ui
+cd /opt/ifrs-ui
 
-# Configure AWS CLI to use instance profile
-export AWS_DEFAULT_REGION=${aws_region}
+# Download UI assets from S3 FIRST (handle both zip files and folders)
+echo "Downloading UI assets from S3..."
+rm -rf ifrs-ui-build
+mkdir -p ifrs-ui-build
 
-# Create application directory
-mkdir -p /opt/app
-cd /opt/app
+# Check if S3_KEY ends with .zip (zip file) or not (folder)
+if [[ "$S3_KEY" == *.zip ]]; then
+    echo "Downloading zip file: $S3_KEY"
+    aws s3 cp "s3://$S3_BUCKET/$S3_KEY" ./ui-build.zip
+    unzip -o ui-build.zip
+    
+    # Handle different zip structures
+    if [ -d "dist" ]; then
+        mv dist/* ifrs-ui-build/
+    elif [ -d "build" ]; then
+        mv build/* ifrs-ui-build/
+    else
+        find . -maxdepth 1 -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -o -name "*.ico" -o -name "*.png" -o -name "*.jpg" -o -name "*.svg" \) -exec mv {} ifrs-ui-build/ \; 2>/dev/null || true
+        find . -maxdepth 1 -type d ! -name "." ! -name "ifrs-ui-build" ! -name "lost+found" -exec mv {} ifrs-ui-build/ \; 2>/dev/null || true
+    fi
+else
+    echo "Downloading folder: $S3_KEY"
+    aws s3 sync "s3://$S3_BUCKET/$S3_KEY" ./ifrs-ui-build/
+fi
 
-# Create environment file for Docker Compose
-cat > .env << EOF
-POSTGRES_DB_NAME=${postgres_db_name}
-POSTGRES_USER=${postgres_user}
-POSTGRES_PASSWORD=${postgres_password}
-PGADMIN_EMAIL=${pgadmin_email}
-PGADMIN_PASSWORD=${pgadmin_password}
-POSTGRES_PORT=${postgres_port}
-PGADMIN_PORT=${pgadmin_port}
-ECR_REPOSITORY_URL=${ecr_repository_url}
-UI_CONTAINER_PORT=${container_port}
+echo "UI build contents:"
+ls -la ifrs-ui-build/
+
+# NOW create Docker files AFTER downloading the assets
+echo "Creating Docker configuration..."
+cat > Dockerfile << 'EOF'
+FROM nginx:alpine
+RUN apk add --no-cache curl
+ARG UI_PATH=ui
+RUN rm -rf /usr/share/nginx/html/*
+RUN mkdir -p /usr/share/nginx/html/$${UI_PATH}
+COPY ifrs-ui-build/ /usr/share/nginx/html/$${UI_PATH}/
+COPY replace-env.sh /tmp/replace-env.sh
+RUN sed "s|UI_PATH_PLACEHOLDER|$${UI_PATH}|g" /tmp/replace-env.sh > /usr/local/bin/replace-env.sh && \
+    chmod +x /usr/local/bin/replace-env.sh && rm /tmp/replace-env.sh
+COPY default.conf /tmp/default.conf.template
+RUN sed "s|UI_PATH_PLACEHOLDER|$${UI_PATH}|g" /tmp/default.conf.template > /etc/nginx/conf.d/default.conf && \
+    rm /tmp/default.conf.template
+ENV UI_PATH=$${UI_PATH}
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/$${UI_PATH}/ || exit 1
+CMD ["/bin/sh", "-c", "/usr/local/bin/replace-env.sh && exec nginx -g 'daemon off;'"]
 EOF
 
-# Copy Docker Compose configuration for UI application only
-cat > docker-compose.yml << 'COMPOSE_EOF'
-version: '3.8'
+cat > replace-env.sh << 'EOF'
+#!/bin/sh
+echo "Starting BASE_URL replacement..."
+echo "BASE_URL: ${BASE_URL}"
+if [ -f "/usr/share/nginx/html/UI_PATH_PLACEHOLDER/assets/env.js" ]; then
+    echo "Replacing BASE_URL in env.js..."
+    sed -i "s|\${BASE_URL}|${BASE_URL}|g" /usr/share/nginx/html/UI_PATH_PLACEHOLDER/assets/env.js
+    echo "BASE_URL replacement completed"
+else
+    echo "Warning: env.js file not found at /usr/share/nginx/html/UI_PATH_PLACEHOLDER/assets/env.js"
+fi
+echo "BASE_URL replacement completed successfully!"
+EOF
 
-services:
-  ui-app:
-    image: $${ECR_REPOSITORY_URL}:latest
-    container_name: ui-app
-    restart: unless-stopped
-    ports:
-      - "80:$${UI_CONTAINER_PORT}"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:$${UI_CONTAINER_PORT}/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-networks:
-  app-network:
-    driver: bridge
-COMPOSE_EOF
-
-# Create directories for application
-mkdir -p logs
-
-# Login to ECR and start UI application
-echo "Starting UI application deployment..."
-aws ecr get-login-password --region ${aws_region} | docker login --username AWS --password-stdin ${ecr_repository_url}
-
-# Start UI application using Docker Compose
-echo "Starting UI application..."
-docker-compose up -d ui-app
-
-# Create health check script
-cat > /home/ubuntu/health-check.sh << 'HEALTH_EOF'
-#!/bin/bash
-LOG_FILE="/var/log/health-check.log"
-
-check_service() {
-    local service_name=$1
-    local url=$2
+cat > default.conf << 'EOF'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html index.htm;
     
-    if curl -f $url > /dev/null 2>&1; then
-        echo "$(date): $service_name is healthy" >> $LOG_FILE
-        return 0
-    else
-        echo "$(date): $service_name is not responding, restarting..." >> $LOG_FILE
-        docker restart $service_name
-        return 1
-    fi
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+    
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_proxied expired no-cache no-store private must-revalidate auth;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+    
+    location = / {
+        return 301 /UI_PATH_PLACEHOLDER/;
+    }
+    
+    location /UI_PATH_PLACEHOLDER/ {
+        alias /usr/share/nginx/html/UI_PATH_PLACEHOLDER/;
+        try_files $uri $uri/ /UI_PATH_PLACEHOLDER/index.html;
+        
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+        
+        location ~* \.html$ {
+            expires -1;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+        }
+    }
+    
+    location /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+    
+    error_page 404 /UI_PATH_PLACEHOLDER/index.html;
+    error_page 500 502 503 504 /50x.html;
+    
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+    
+    location ~ /\.ht { deny all; }
+    location ~ /\. { deny all; access_log off; log_not_found off; }
 }
+EOF
 
-# Check UI application
-check_service "ui-app" "http://localhost:80/health"
-HEALTH_EOF
+# Build and run Docker container
+echo "Building Docker image..."
+docker build --build-arg UI_PATH="$UI_PATH" -t ifrs-ui .
 
-chmod +x /home/ubuntu/health-check.sh
-chown ubuntu:ubuntu /home/ubuntu/health-check.sh
+echo "Starting container..."
+docker stop ifrs-ui-app 2>/dev/null || true
+docker rm ifrs-ui-app 2>/dev/null || true
 
-# Add health check to crontab (every 5 minutes)
-(crontab -l 2>/dev/null; echo "*/5 * * * * /home/ubuntu/health-check.sh") | crontab -
+docker run -d \
+    --name ifrs-ui-app \
+    --restart unless-stopped \
+    -p 80:80 \
+    -e BASE_URL="$BASE_URL" \
+    ifrs-ui
 
-# Create log rotation for health check logs
-cat > /etc/logrotate.d/health-check << 'LOGROTATE_EOF'
-/var/log/health-check.log {
-    daily
-    rotate 7
-    compress
-    delaycompress
-    missingok
-    notifempty
-    create 644 ubuntu ubuntu
-}
-LOGROTATE_EOF
+sleep 5
+docker ps --filter name=ifrs-ui-app
 
-# Set proper ownership
-chown -R ubuntu:ubuntu /opt/app
-
-echo "Setup completed successfully!" 
-echo "Services available:"
-echo "- UI Application: http://$(curl -s http://169.254.169.254/latest/meta-data/private-ipv4) (private IP)"
-echo "- Instance has no public IP address - access via private network only"
+echo "=== Setup Complete ==="
+echo "UI accessible at: http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/$UI_PATH/"
+echo "Completed: $(date)"
