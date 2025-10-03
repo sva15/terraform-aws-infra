@@ -67,10 +67,6 @@ additional_tags = {
 }
 
 
-
-# AWS Region
-aws_region = "us-east-1"
-
 # Frontend/UI Configuration
 #use_local_ui_source = true  # Set to false to use existing S3 bucket
 
