@@ -51,7 +51,7 @@ resource "aws_db_subnet_group" "main" {
 
 # DB Parameter Group
 resource "aws_db_parameter_group" "main" {
-  family = "postgres15"
+  family = "postgres17"
   name   = local.db_parameter_group_name
 
   # PostgreSQL performance and logging parameters
