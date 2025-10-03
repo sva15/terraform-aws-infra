@@ -163,7 +163,7 @@ variable "ui_path" {
   default     = "ui"
 }
 
-variable "base_url" {
+variable "BASE_URL" {
   description = "Base URL for the UI application (runtime environment variable)"
   type        = string
   default     = ""

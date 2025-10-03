@@ -116,7 +116,7 @@ output "connection_info" {
     database              = aws_db_instance.main.db_name
     username              = aws_db_instance.main.username
     password_secret_arn   = var.use_secrets_manager ? aws_db_instance.main.master_user_secret[0].secret_arn : null
-    password_secret_name  = var.use_secrets_manager ? aws_db_instance.main.master_user_secret[0].secret_name : null
+    #password_secret_name  = var.use_secrets_manager ? aws_db_instance.main.master_user_secret[0].secret_name : null
     using_secrets_manager = var.use_secrets_manager
   }
   sensitive = true
