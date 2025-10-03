@@ -127,7 +127,7 @@ locals {
     s3_bucket             = var.ui_s3_bucket
     s3_key                = var.ui_s3_key
     ui_path               = var.ui_path
-    base_url              = var.base_url
+    BASE_URL              = var.BASE_URL
     aws_region            = data.aws_region.current.name
     deploy_database       = var.deploy_database
     postgres_db_name      = var.postgres_db_name

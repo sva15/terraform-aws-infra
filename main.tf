@@ -22,6 +22,12 @@ terraform {
   }
 }
 
+locals {
+  # Common Tags
+  common_tags = {
+  Created_by = "Terraform"
+  }
+}
 # Configure AWS Provider
 provider "aws" {
   region = var.aws_region
