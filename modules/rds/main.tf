@@ -238,7 +238,7 @@ resource "aws_lambda_function" "db_restore" {
   source_code_hash = data.archive_file.db_restore_zip[0].output_base64sha256
   runtime          = "python3.9"
   timeout          = 300
-
+  
   vpc_config {
     subnet_ids         = var.subnet_ids
     security_group_ids = var.security_group_ids
