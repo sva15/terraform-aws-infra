@@ -69,21 +69,25 @@ variable "s3_bucket_name" {
 variable "vpc_name" {
   description = "Name tag of the VPC to use"
   type        = string
+  default     = "ifrs-vpc"
 }
 
 variable "subnet_names" {
   description = "List of subnet name tags to use for Lambda functions"
   type        = list(string)
+  default     = []
 }
 
 variable "security_group_names" {
   description = "List of security group name tags to use for Lambda functions"
   type        = list(string)
+  default     = []
 }
 
 variable "public_subnet_names" {
   description = "List of public subnet name tags for EC2 instance"
   type        = list(string)
+  default     = []
 }
 
 # Lambda Configuration
