@@ -48,12 +48,9 @@ data "aws_subnets" "selected" {
     values = [data.aws_vpc.selected.id]
   }
 
-  dynamic "filter" {
-    for_each = var.subnet_names
-    content {
-      name   = "tag:Name"
-      values = [filter.value]
-    }
+  filter {
+    name   = "tag:Name"
+    values = var.subnet_names
   }
 }
 
@@ -63,12 +60,9 @@ data "aws_subnets" "public" {
     values = [data.aws_vpc.selected.id]
   }
 
-  dynamic "filter" {
-    for_each = var.public_subnet_names
-    content {
-      name   = "tag:Name"
-      values = [filter.value]
-    }
+  filter {
+    name   = "tag:Name"
+    values = var.public_subnet_names
   }
 }
 
@@ -78,14 +72,12 @@ data "aws_security_groups" "selected" {
     values = [data.aws_vpc.selected.id]
   }
 
-  dynamic "filter" {
-    for_each = var.security_group_names
-    content {
-      name   = "tag:Name"
-      values = [filter.value]
-    }
+  filter {
+    name   = "tag:Name"
+    values = var.security_group_names
   }
 }
+
 
 # Backend Module - Lambda Functions
 module "backend" {
@@ -121,7 +113,7 @@ module "frontend" {
   environment          = var.environment
   project_name         = var.project_name
   vpc_id               = data.aws_vpc.selected.id
-  public_subnet_id     = data.aws_subnets.public.ids[0]
+  public_subnet_id     = length(data.aws_subnets.public.ids) > 0 ? data.aws_subnets.public.ids[0] : null
   private_subnet_ids   = data.aws_subnets.selected.ids
   security_group_ids   = data.aws_security_groups.selected.ids
   use_local_ui_source  = var.use_local_ui_source
