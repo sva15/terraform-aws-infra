@@ -164,7 +164,7 @@ variable "ui_s3_bucket" {
 variable "ui_s3_key" {
   description = "S3 key for UI build zip file"
   type        = string
-  default     = "ifrs-ui-build.zip"
+  default     = ""
 }
 
 variable "ui_path" {
