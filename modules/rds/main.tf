@@ -58,31 +58,37 @@ resource "aws_db_parameter_group" "main" {
   parameter {
     name  = "log_statement"
     value = "all"
+    apply_immediately = "pending-reboot"
   }
 
   parameter {
     name  = "log_min_duration_statement"
     value = "1000"
+    apply_immediately = "pending-reboot"
   }
 
   parameter {
     name  = "shared_preload_libraries"
     value = "pg_stat_statements"
+    apply_immediately = "pending-reboot"
   }
 
   parameter {
     name  = "track_activity_query_size"
     value = "2048"
+    apply_immediately = "pending-reboot"
   }
 
   parameter {
     name  = "log_connections"
     value = "1"
+    apply_immediately = "pending-reboot"
   }
 
   parameter {
     name  = "log_disconnections"
     value = "1"
+    apply_immediately = "pending-reboot"
   }
 
   tags = merge(var.common_tags, {

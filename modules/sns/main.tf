@@ -158,7 +158,8 @@ resource "aws_lambda_permission" "allow_sns" {
   principal     = "sns.amazonaws.com"
   source_arn    = aws_sns_topic.topics[each.value.topic_name].arn
 
-  depends_on = [aws_sns_topic_subscription.lambda_subscriptions]
+  depends_on = [aws_sns_topic_subscription.lambda_subscriptions, aws_lambda_function.lambda_functions]
+
 }
 
 # Data source for current AWS account

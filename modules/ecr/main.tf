@@ -7,7 +7,7 @@ locals {
 resource "aws_ecr_repository" "repositories" {
   for_each = toset(var.repositories)
 
-  name                 = "${local.env_prefix}${var.project_name}-${each.value}"
+  name                 = lower(replace("${local.env_prefix}${var.project_name}-${each.value}", " ", "-"))
   image_tag_mutability = var.image_tag_mutability
 
   image_scanning_configuration {
