@@ -1,6 +1,6 @@
 # Environment Configuration
 environment = "dev"  # Options: dev, int, prod
-
+aws_region = "ap-south-1"
 # Project Configuration
 project_name = "IFRS-InsightGen"
 lambda_prefix = "insightgen"
