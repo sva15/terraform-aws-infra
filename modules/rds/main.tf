@@ -251,7 +251,7 @@ resource "aws_lambda_function" "db_restore" {
         AWS_REGION          = data.aws_region.current.name
       },
       var.use_secrets_manager ? {
-        DB_SECRET_NAME = aws_db_instance.main.master_user_secret[0].secret_name
+        DB_SECRET_NAME = aws_db_instance.main.master_user_secret[0].password
         } : {
         DB_PASSWORD = var.db_password
       }
