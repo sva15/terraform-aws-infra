@@ -154,11 +154,11 @@ resource "aws_lambda_permission" "allow_sns" {
 
   statement_id  = "AllowExecutionFromSNS-${each.value.topic_name}"
   action        = "lambda:InvokeFunction"
-  function_name = each.value.lambda_name
+  function_name =  var.lambda_function_arns[each.value.lambda_name]
   principal     = "sns.amazonaws.com"
   source_arn    = aws_sns_topic.topics[each.value.topic_name].arn
 
-  depends_on = [aws_sns_topic_subscription.lambda_subscriptions, module.lambda_functions]
+  depends_on = [aws_sns_topic_subscription.lambda_subscriptions]
 
 }
 
