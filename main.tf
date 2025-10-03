@@ -39,10 +39,7 @@ provider "aws" {
 
 # Data sources for existing AWS resources
 data "aws_vpc" "selected" {
-  filter {
-    name   = "tag:Name"
-    values = [var.vpc_name]
-  }
+  id = var.vpc_id
 }
 
 data "aws_subnets" "selected" {

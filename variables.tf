@@ -72,6 +72,12 @@ variable "vpc_name" {
   default     = "ifrs-vpc"
 }
 
+variable "vpc_id" {
+  description = "ID of the VPC to use"
+  type        = string
+  default     = ""
+}
+
 variable "subnet_names" {
   description = "List of subnet name tags to use for Lambda functions"
   type        = list(string)
