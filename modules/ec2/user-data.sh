@@ -45,7 +45,7 @@ chmod a+r /etc/apt/keyrings/docker.asc
 # Add the repository to Apt sources:
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  $(. /etc/os-release && echo "$${UBUNTU_CODENAME:-$$VERSION_CODENAME}") stable" | \
   tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Update package index
@@ -121,10 +121,10 @@ EOF
 cat > replace-env.sh << 'EOF'
 #!/bin/sh
 echo "Starting BASE_URL replacement..."
-echo "BASE_URL: ${BASE_URL}"
+echo "BASE_URL: $${BASE_URL}"
 if [ -f "/usr/share/nginx/html/UI_PATH_PLACEHOLDER/assets/env.js" ]; then
     echo "Replacing BASE_URL in env.js..."
-    sed -i "s|\${BASE_URL}|${BASE_URL}|g" /usr/share/nginx/html/UI_PATH_PLACEHOLDER/assets/env.js
+    sed -i "s|\$${BASE_URL}|$${BASE_URL}|g" /usr/share/nginx/html/UI_PATH_PLACEHOLDER/assets/env.js
     echo "BASE_URL replacement completed"
 else
     echo "Warning: env.js file not found at /usr/share/nginx/html/UI_PATH_PLACEHOLDER/assets/env.js"

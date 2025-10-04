@@ -121,13 +121,12 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   })
 }
 
-# User data script for EC2 instance
 locals {
   user_data = base64encode(templatefile("${path.module}/user-data.sh", {
     s3_bucket             = var.ui_s3_bucket
     s3_key                = var.ui_s3_key
     ui_path               = var.ui_path
-    BASE_URL              = var.BASE_URL
+    base_url              = var.base_url
     aws_region            = data.aws_region.current.name
     deploy_database       = var.deploy_database
     postgres_db_name      = var.postgres_db_name

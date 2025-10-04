@@ -165,7 +165,7 @@ variable "ui_path" {
   default     = "ui"
 }
 
-variable "BASE_URL" {
+variable "base_url" {
   description = "Base URL for the UI application"
   type        = string
   default     = ""
