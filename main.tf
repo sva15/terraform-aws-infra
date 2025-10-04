@@ -50,13 +50,41 @@ data "aws_vpc" "selected" {
     name   = "tag:Name"
     values = [var.vpc_name]
   }
-  
-  # Add debugging - this will show in terraform plan/apply output
-  lifecycle {
-    postcondition {
-      condition     = self.id != ""
-      error_message = "VPC with name '${var.vpc_name}' not found in region '${var.aws_region}'. Available VPCs: ${join(", ", data.aws_vpcs.all.ids)}. Please verify the VPC name and region are correct."
-    }
+}
+
+data "aws_subnets" "selected" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.selected.id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = var.subnet_names
+  }
+}
+
+data "aws_subnets" "public" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.selected.id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = var.public_subnet_names
+  }
+}
+
+data "aws_security_groups" "selected" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.selected.id]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = var.security_group_names
   }
 }
 
@@ -184,7 +212,7 @@ output "debug_vpc_info" {
     region_actual     = data.aws_region.current.name
     account_id        = data.aws_caller_identity.current.account_id
     vpc_name_used     = var.vpc_name
-    all_vpc_ids       = data.aws_vpcs.all.ids
+    vpc_found         = length(data.aws_vpc.selected.id) > 0 ? "Yes" : "No"
     vpc_count         = length(data.aws_vpcs.all.ids)
   }
 }
