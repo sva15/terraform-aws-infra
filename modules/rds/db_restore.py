@@ -1,6 +1,6 @@
 import json
 import boto3
-import pg8000
+import psycopg2
 import os
 import logging
 from botocore.exceptions import ClientError
@@ -114,15 +114,15 @@ def handler(event, context):
             }
         )
         
-        # Connect to PostgreSQL using pg8000
+        # Connect to PostgreSQL
         logger.info("Connecting to PostgreSQL database...")
-        connection = pg8000.connect(
+        connection = psycopg2.connect(
             host=rds_endpoint,
             port=rds_port,
             database=db_name,
             user=db_username,
             password=db_password,
-            timeout=30
+            connect_timeout=30
         )
         
         connection.autocommit = True
@@ -149,7 +149,7 @@ def handler(event, context):
                     if (i + 1) % 100 == 0:
                         logger.info(f"Executed {i + 1}/{len(sql_statements)} statements")
                         
-            except pg8000.Error as e:
+            except psycopg2.Error as e:
                 logger.warning(f"Error executing statement {i + 1}: {str(e)}")
                 # Continue with next statement for non-critical errors
                 continue
@@ -194,7 +194,7 @@ def handler(event, context):
             })
         }
         
-    except pg8000.Error as e:
+    except psycopg2.Error as e:
         error_msg = f"Database error during restoration: {str(e)}"
         logger.error(error_msg)
         return {

@@ -54,9 +54,6 @@ apt-get update -y
 # Install Docker packages
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Start and enable Docker service
-systemctl start docker
-systemctl enable docker
 
 # Add ubuntu user to docker group (if exists)
 if id "ubuntu" &>/dev/null; then
