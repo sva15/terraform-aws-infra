@@ -26,7 +26,7 @@ Add these to your `terraform.tfvars`:
 ui_s3_bucket = "your-ui-build-bucket"     # S3 bucket containing UI assets
 ui_s3_key    = "path/to/assets"           # S3 key (folder) or "build.zip" (zip file)
 ui_path      = "ui"                       # UI routing path
-base_url     = "https://api.example.com"  # API base URL (runtime only)
+BASE_URL     = "https://api.example.com"  # API base URL (runtime only)
 ```
 
 ### Build vs Runtime Configuration
