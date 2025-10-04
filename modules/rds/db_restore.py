@@ -45,21 +45,21 @@ def get_database_credentials():
         secret = get_secret(secret_name, region)
         
         return {
-            'host': secret.get('host', os.environ.get('RDS_HOST')),
+            'host': secret.get('host', os.environ.get('RDS_ENDPOINT')),
             'port': secret.get('port', os.environ.get('RDS_PORT', '5432')),
-            'database': secret.get('dbname', os.environ.get('RDS_DB_NAME')),
-            'username': secret.get('username', os.environ.get('RDS_USERNAME')),
+            'database': secret.get('dbname', os.environ.get('DB_NAME')),
+            'username': secret.get('username', os.environ.get('DB_USERNAME')),
             'password': secret['password']
         }
     else:
         # Use environment variables (legacy method)
         logger.info("Using database credentials from environment variables")
         return {
-            'host': os.environ.get('RDS_HOST'),
+            'host': os.environ.get('RDS_ENDPOINT'),
             'port': os.environ.get('RDS_PORT', '5432'),
-            'database': os.environ.get('RDS_DB_NAME'),
-            'username': os.environ.get('RDS_USERNAME'),
-            'password': os.environ.get('RDS_PASSWORD')
+            'database': os.environ.get('DB_NAME'),
+            'username': os.environ.get('DB_USERNAME'),
+            'password': os.environ.get('DB_PASSWORD')
         }
 
 def handler(event, context):
@@ -70,15 +70,38 @@ def handler(event, context):
         # Get database credentials
         db_credentials = get_database_credentials()
         
-        rds_endpoint = db_credentials['host']
-        rds_port = int(db_credentials['port'])
-        db_name = db_credentials['database']
-        db_username = db_credentials['username']
-        db_password = db_credentials['password']
+        # Debug: Log the credentials structure (without password)
+        logger.info(f"Retrieved credentials keys: {list(db_credentials.keys())}")
+        
+        rds_endpoint = db_credentials.get('host')
+        rds_port = db_credentials.get('port', '5432')
+        db_name = db_credentials.get('database')
+        db_username = db_credentials.get('username')
+        db_password = db_credentials.get('password')
         s3_bucket = os.environ.get('S3_BUCKET', '')
         s3_key = os.environ.get('S3_KEY', '')
         
-        logger.info(f"Starting database restoration for {db_name} on {rds_endpoint}")
+        # Debug: Log what we got (without password)
+        logger.info(f"Parsed credentials - Host: {rds_endpoint}, Port: {rds_port}, DB: {db_name}, User: {db_username}")
+        
+        # Validate required credentials
+        if not rds_endpoint:
+            raise ValueError("RDS endpoint (host) is required but not found in credentials")
+        if not db_name:
+            raise ValueError("Database name is required but not found in credentials")
+        if not db_username:
+            raise ValueError("Database username is required but not found in credentials")
+        if not db_password:
+            raise ValueError("Database password is required but not found in credentials")
+        
+        # Convert port to integer
+        try:
+            rds_port = int(rds_port)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid port value '{rds_port}', using default 5432")
+            rds_port = 5432
+        
+        logger.info(f"Starting database restoration for {db_name} on {rds_endpoint}:{rds_port}")
         
         # Check if S3 backup is configured
         if not s3_bucket or not s3_key:
@@ -103,16 +126,28 @@ def handler(event, context):
         rds_client = boto3.client('rds')
         
         # Get RDS instance identifier from endpoint
-        db_identifier = rds_endpoint.split('.')[0]
-        
-        waiter = rds_client.get_waiter('db_instance_available')
-        waiter.wait(
-            DBInstanceIdentifier=db_identifier,
-            WaiterConfig={
-                'Delay': 30,
-                'MaxAttempts': 20
-            }
-        )
+        # RDS endpoint format: db-identifier.random-string.region.rds.amazonaws.com
+        try:
+            if rds_endpoint and '.' in rds_endpoint:
+                db_identifier = rds_endpoint.split('.')[0]
+            else:
+                # Fallback: try to construct identifier from environment
+                db_identifier = os.environ.get('RDS_DB_IDENTIFIER', f"{os.environ.get('PROJECT', 'ifrs')}-db")
+                logger.warning(f"Could not parse DB identifier from endpoint '{rds_endpoint}', using fallback: {db_identifier}")
+            
+            logger.info(f"Using DB identifier: {db_identifier}")
+            
+            waiter = rds_client.get_waiter('db_instance_available')
+            waiter.wait(
+                DBInstanceIdentifier=db_identifier,
+                WaiterConfig={
+                    'Delay': 30,
+                    'MaxAttempts': 20
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Could not wait for RDS instance: {str(e)}. Proceeding with connection attempt...")
+            # Continue without waiting - the connection attempt will fail if RDS is not ready
         
         # Connect to PostgreSQL
         logger.info("Connecting to PostgreSQL database...")
