@@ -22,7 +22,7 @@ lambda_layers_local_path = "./backend/lambda-layers"
 
 # VPC Configuration
 vpc_name = "ifrs-vpc"
-vpc_id = "vpc-0036a3a1c98f4d083"
+vpc_id = "vpc-07df59897b5eb45f4"
 subnet_names = [
   "ifrs-subnet-private1-ap-south-1a",
   "ifrs-subnet-private2-ap-south-1b"
