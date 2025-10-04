@@ -23,6 +23,16 @@ output "lambda_layers" {
   }
 }
 
+# Debug output for layer creation
+output "debug_layer_creation" {
+  description = "Debug information about layer creation"
+  value = {
+    layer_files_found = local.lambda_layer_files
+    layer_names_extracted = local.lambda_layer_names
+    layers_created = keys(aws_lambda_layer_version.layers)
+  }
+}
+
 output "s3_bucket" {
   description = "S3 bucket information (if created)"
   value = var.create_s3_bucket && var.use_local_source ? {

@@ -168,6 +168,19 @@ module "frontend" {
   #common_tags           = local.common_tags
 }
 
+# Debug outputs for Lambda layers
+output "debug_lambda_layers" {
+  description = "Debug lambda layers from backend"
+  value = module.backend.lambda_layers
+}
+
+output "debug_layer_mapping" {
+  description = "Debug layer ARN mapping"
+  value = {
+    for name, layer in module.backend.lambda_layers : name => layer.arn
+  }
+}
+
 # Debug outputs
 output "debug_vpc_info" {
   description = "Debug information about VPC lookup"

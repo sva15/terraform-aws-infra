@@ -241,10 +241,16 @@ resource "aws_lambda_function" "db_restore" {
   memory_size      = var.lambda_memory_size
   
   # Add Lambda layers if specified for db-restore function
-  layers = lookup(var.lambda_layer_mappings, "db-restore", []) != [] ? [
-    for layer_name in lookup(var.lambda_layer_mappings, "db-restore", []) :
-    lookup(var.lambda_layers, layer_name, "")
-  ] : []
+  layers = distinct(concat(
+    # Layers from mapping
+    length(lookup(var.lambda_layer_mappings, "db-restore", [])) > 0 ? [
+      for layer_name in lookup(var.lambda_layer_mappings, "db-restore", []) :
+      var.lambda_layers[layer_name]
+      if contains(keys(var.lambda_layers), layer_name)
+    ] : [],
+    # Fallback: directly add lambda-deps-layer if it exists and not already included
+    contains(keys(var.lambda_layers), "lambda-deps-layer") ? [var.lambda_layers["lambda-deps-layer"]] : []
+  ))
   
   vpc_config {
     subnet_ids         = var.subnet_ids

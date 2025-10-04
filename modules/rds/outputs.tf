@@ -15,6 +15,21 @@ output "db_instance_endpoint" {
   value       = aws_db_instance.main.endpoint
 }
 
+# Debug output for Lambda layers
+output "debug_db_restore_layers" {
+  description = "Debug layers applied to db-restore function"
+  value = (var.sql_backup_s3_bucket != "" && var.sql_backup_s3_key != "") || var.sql_backup_local_path != "" ? {
+    layer_mappings = var.lambda_layer_mappings
+    available_layers = var.lambda_layers
+    db_restore_layers = lookup(var.lambda_layer_mappings, "db-restore", [])
+    applied_layer_arns = length(lookup(var.lambda_layer_mappings, "db-restore", [])) > 0 ? [
+      for layer_name in lookup(var.lambda_layer_mappings, "db-restore", []) :
+      var.lambda_layers[layer_name]
+      if contains(keys(var.lambda_layers), layer_name)
+    ] : []
+  } : null
+}
+
 output "db_instance_hosted_zone_id" {
   description = "RDS instance hosted zone ID"
   value       = aws_db_instance.main.hosted_zone_id
