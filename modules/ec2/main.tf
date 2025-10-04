@@ -131,7 +131,7 @@ locals {
     s3_key                = var.ui_s3_key
     ui_path               = var.ui_path
     BASE_URL              = var.BASE_URL
-    aws_region            = data.aws_region.current.name
+    aws_region            = var.aws_region
     deploy_database       = var.deploy_database
     postgres_db_name      = var.postgres_db_name
     postgres_user         = var.postgres_user
@@ -146,8 +146,7 @@ locals {
   }))
 }
 
-# Data source for current region
-data "aws_region" "current" {}
+# Data source for current region is defined in main.tf
 
 # EC2 Instance
 resource "aws_instance" "ui_server" {

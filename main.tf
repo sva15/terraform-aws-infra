@@ -37,11 +37,26 @@ provider "aws" {
   }
 }
 
+# Debug: Get current region and caller identity for troubleshooting
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
+# Debug: List all VPCs in the region to help troubleshoot
+data "aws_vpcs" "all" {}
+
 # Data sources for existing AWS resources
 data "aws_vpc" "selected" {
   filter {
     name   = "tag:Name"
     values = [var.vpc_name]
+  }
+  
+  # Add debugging - this will show in terraform plan/apply output
+  lifecycle {
+    postcondition {
+      condition     = self.id != ""
+      error_message = "VPC with name '${var.vpc_name}' not found in region '${var.aws_region}'. Available VPCs: ${join(", ", data.aws_vpcs.all.ids)}. Please verify the VPC name and region are correct."
+    }
   }
 }
 
@@ -115,6 +130,7 @@ module "frontend" {
 
   environment          = var.environment
   project_name         = var.project_name
+  aws_region           = var.aws_region
   vpc_id               = data.aws_vpc.selected.id
   public_subnet_id     = length(data.aws_subnets.public.ids) > 0 ? data.aws_subnets.public.ids[0] : null
   private_subnet_ids   = data.aws_subnets.selected.ids
@@ -158,4 +174,17 @@ module "frontend" {
   }
 
   #common_tags           = local.common_tags
+}
+
+# Debug outputs
+output "debug_vpc_info" {
+  description = "Debug information about VPC lookup"
+  value = {
+    region_configured = var.aws_region
+    region_actual     = data.aws_region.current.name
+    account_id        = data.aws_caller_identity.current.account_id
+    vpc_name_used     = var.vpc_name
+    all_vpc_ids       = data.aws_vpcs.all.ids
+    vpc_count         = length(data.aws_vpcs.all.ids)
+  }
 }

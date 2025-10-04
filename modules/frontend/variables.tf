@@ -187,6 +187,12 @@ variable "common_tags" {
   default     = {}
 }
 
+variable "aws_region" {
+  description = "AWS region for resources"
+  type        = string
+  default     = "ap-south-1"
+}
+
 # Lambda Configuration for RDS module
 variable "lambda_runtime" {
   description = "Runtime for Lambda functions"
