@@ -252,9 +252,13 @@ resource "aws_lambda_function" "db_restore" {
     contains(keys(var.lambda_layers), "lambda-deps-layer") ? [var.lambda_layers["lambda-deps-layer"]] : []
   ))
   
-  vpc_config {
-    subnet_ids         = var.subnet_ids
-    security_group_ids = var.security_group_ids
+  # VPC Configuration - only if both subnets and security groups are provided
+  dynamic "vpc_config" {
+    for_each = length(var.subnet_ids) > 0 && length(var.security_group_ids) > 0 ? [1] : []
+    content {
+      subnet_ids         = var.subnet_ids
+      security_group_ids = var.security_group_ids
+    }
   }
 
   environment {

@@ -62,6 +62,13 @@ data "aws_subnets" "selected" {
     name   = "tag:Name"
     values = var.subnet_names
   }
+  
+  lifecycle {
+    postcondition {
+      condition     = length(self.ids) > 0
+      error_message = "No subnets found with names: ${join(", ", var.subnet_names)} in VPC ${data.aws_vpc.selected.id}"
+    }
+  }
 }
 
 data "aws_subnets" "public" {
@@ -85,6 +92,13 @@ data "aws_security_groups" "selected" {
   filter {
     name   = "tag:Name"
     values = var.security_group_names
+  }
+  
+  lifecycle {
+    postcondition {
+      condition     = length(self.ids) > 0
+      error_message = "No security groups found with names: ${join(", ", var.security_group_names)} in VPC ${data.aws_vpc.selected.id}"
+    }
   }
 }
 
@@ -191,5 +205,18 @@ output "debug_vpc_info" {
     vpc_name_used     = var.vpc_name
     vpc_found         = length(data.aws_vpc.selected.id) > 0 ? "Yes" : "No"
     vpc_count         = length(data.aws_vpcs.all.ids)
+  }
+}
+
+output "debug_network_resources" {
+  description = "Debug network resources for Lambda"
+  value = {
+    vpc_id = data.aws_vpc.selected.id
+    subnet_names_searched = var.subnet_names
+    subnets_found = data.aws_subnets.selected.ids
+    subnet_count = length(data.aws_subnets.selected.ids)
+    security_group_names_searched = var.security_group_names
+    security_groups_found = data.aws_security_groups.selected.ids
+    security_group_count = length(data.aws_security_groups.selected.ids)
   }
 }
