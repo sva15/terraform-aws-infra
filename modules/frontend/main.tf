@@ -37,7 +37,7 @@ module "ec2" {
   ui_s3_bucket = var.ui_s3_bucket
   ui_s3_key    = var.ui_s3_key
   ui_path      = var.ui_path
-  base_url     = var.base_url
+  BASE_URL     = var.BASE_URL
   aws_region   = var.aws_region
 
   # AMI Configuration
