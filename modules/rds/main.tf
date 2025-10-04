@@ -359,6 +359,29 @@ resource "aws_iam_role_policy" "db_restore_lambda" {
           "s3:GetObject"
         ]
         Resource = var.sql_backup_s3_bucket != "" ? "arn:aws:s3:::${var.sql_backup_s3_bucket}/*" : "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+          "kms:GenerateDataKey"
+        ]
+        Resource = [
+          # Allow access to RDS KMS key
+          "${var.use_secrets_manager && var.storage_encrypted ? (var.kms_key_id != "" ? var.kms_key_id : aws_kms_key.rds_key[0].arn) : "*"}",
+          # Allow access to default Secrets Manager KMS key
+          "arn:aws:kms:*:*:key/*",
+          # Allow access to AWS managed key for Secrets Manager
+          "arn:aws:kms:*:*:alias/aws/secretsmanager"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "rds:DescribeDBInstances"
+        ]
+        Resource = "*"
       }
     ]
   })
