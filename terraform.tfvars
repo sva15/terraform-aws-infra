@@ -22,7 +22,6 @@ lambda_layers_local_path = "./backend/lambda-layers"
 
 # VPC Configuration
 vpc_name = "ifrs-vpc"
-vpc_id = "vpc-07df59897b5eb45f4"
 subnet_names = [
   "ifrs-subnet-private1-ap-south-1a",
   "ifrs-subnet-private2-ap-south-1b"
@@ -84,6 +83,8 @@ use_local_ui_source = false  # Set to true to use local UI build
 ui_s3_bucket = "filterrithas"  # S3 bucket containing UI build
 ui_s3_key = "ui-build"  # S3 key prefix for UI build files
 ui_assets_local_path = ""  # Local path to UI build (leave empty when using S3)
+ui_path = "ui"  # UI routing path
+BASE_URL = "https://api.yourdomain.com"  # Base URL for API calls
 
 # AMI Configuration (for shared custom AMIs)
 ami_id = "ami-02d26659fd82cf299"  # Specific AMI ID (leave empty to use ami_name_pattern)

@@ -72,11 +72,7 @@ variable "vpc_name" {
   default     = "ifrs-vpc"
 }
 
-variable "vpc_id" {
-  description = "ID of the VPC to use"
-  type        = string
-  default     = ""
-}
+# vpc_id variable removed - using vpc_name data source instead
 
 variable "subnet_names" {
   description = "List of subnet name tags to use for Lambda functions"

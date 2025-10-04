@@ -55,7 +55,7 @@ resource "local_file" "private_key" {
 
 # IAM role for EC2 instance
 resource "aws_iam_role" "ec2_role" {
-  name = "HCL-User-Role-insightgen-ec2-ui"
+  name = "HCL-User-Role-insightgen-ec2-ui-${random_id.instance_profile_suffix.hex}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -71,13 +71,12 @@ resource "aws_iam_role" "ec2_role" {
   })
 
   tags = merge(var.common_tags, {
-    Name    = "HCL-User-Role-insightgen-ec2-ui"
-    Module  = "ec2"
-    Service = "ec2-ui"
+    Name   = "HCL-User-Role-insightgen-ec2-ui"
+    Module = "ec2"
   })
 }
 
-# IAM policy for S3 and ECR access
+# IAM policy for EC2 role
 resource "aws_iam_role_policy" "ec2_policy" {
   name = "${local.env_prefix}${var.project_name}-ui-ec2-policy"
   role = aws_iam_role.ec2_role.id
@@ -110,9 +109,14 @@ resource "aws_iam_role_policy" "ec2_policy" {
   })
 }
 
+# Random suffix for unique naming
+resource "random_id" "instance_profile_suffix" {
+  byte_length = 4
+}
+
 # IAM instance profile
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "${local.env_prefix}${var.project_name}-ui-ec2-profile"
+  name = "${local.env_prefix}${var.project_name}-ui-ec2-profile-${random_id.instance_profile_suffix.hex}"
   role = aws_iam_role.ec2_role.name
 
   tags = merge(var.common_tags, {
