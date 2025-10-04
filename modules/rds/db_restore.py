@@ -36,7 +36,7 @@ def get_database_credentials():
     if use_secrets_manager:
         # Get credentials from Secrets Manager
         secret_name = os.environ.get('DB_SECRET_NAME')
-        region = os.environ.get('AWS_REGION', 'us-east-1')
+        region = os.environ.get('AWS_REGION', 'ap-south-1')
         
         if not secret_name:
             raise ValueError("DB_SECRET_NAME environment variable is required when using Secrets Manager")
