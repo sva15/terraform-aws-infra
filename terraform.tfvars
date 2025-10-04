@@ -21,7 +21,7 @@ lambda_layers_local_path = "./backend/lambda-layers"
 #s3_bucket_name = "filterrithas"
 
 # VPC Configuration
-vpc_name = "ifrs-vpc"
+vpc_name = "ifrs-vpc-vpc"
 subnet_names = [
   "ifrs-subnet-private1-ap-south-1a",
   "ifrs-subnet-private2-ap-south-1b"
