@@ -23,15 +23,15 @@ lambda_layers_local_path = "./backend/lambda-layers"
 # VPC Configuration
 vpc_name = "ifrs-vpc-vpc"
 subnet_names = [
-  "ifrs-subnet-private1-ap-south-1a",
-  "ifrs-subnet-private2-ap-south-1b"
+  "ifrs-vpc-subnet-private2-ap-south-1b",
+  "ifrs-vpc-subnet-private1-ap-south-1a"
 ]
 security_group_names = [
   "ifrs-vpc-sg"
 ]
 public_subnet_names = [
-  "ifrs-subnet-public2-ap-south-1b",
-  "ifrs-subnet-public1-ap-south-1a"
+  "ifrs-vpc-subnet-public2-ap-south-1b",
+  "ifrs-vpc-subnet-public1-ap-south-1a"
 ]
 # Lambda Configuration
 lambda_runtime = "python3.12"
