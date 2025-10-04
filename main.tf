@@ -88,42 +88,6 @@ data "aws_security_groups" "selected" {
   }
 }
 
-data "aws_subnets" "selected" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.selected.id]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = var.subnet_names
-  }
-}
-
-data "aws_subnets" "public" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.selected.id]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = var.public_subnet_names
-  }
-}
-
-data "aws_security_groups" "selected" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.selected.id]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = var.security_group_names
-  }
-}
-
 
 # Backend Module - Lambda Functions
 module "backend" {
