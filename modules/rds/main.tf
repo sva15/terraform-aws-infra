@@ -236,8 +236,15 @@ resource "aws_lambda_function" "db_restore" {
   role             = aws_iam_role.db_restore_lambda[0].arn
   handler          = "index.handler"
   source_code_hash = data.archive_file.db_restore_zip[0].output_base64sha256
-  runtime          = "python3.9"
-  timeout          = 300
+  runtime          = var.lambda_runtime
+  timeout          = var.lambda_timeout
+  memory_size      = var.lambda_memory_size
+  
+  # Add Lambda layers if specified for db-restore function
+  layers = lookup(var.lambda_layer_mappings, "db-restore", []) != [] ? [
+    for layer_name in lookup(var.lambda_layer_mappings, "db-restore", []) :
+    lookup(var.lambda_layers, layer_name, "")
+  ] : []
   
   vpc_config {
     subnet_ids         = var.subnet_ids

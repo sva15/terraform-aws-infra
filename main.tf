@@ -134,16 +134,25 @@ module "frontend" {
   # Database Configuration
   deploy_database       = var.deploy_database
   postgres_db_name      = var.postgres_db_name
-  postgres_user         = var.postgres_user
   postgres_password     = var.postgres_password
   postgres_port         = var.postgres_port
   use_secrets_manager   = var.use_secrets_manager
   pgadmin_email         = var.pgadmin_email
   pgadmin_password      = var.pgadmin_password
-  pgadmin_port          = var.pgadmin_port
+  pgadmin_port         = var.pgadmin_port
+  # SQL Backup Configuration
   sql_backup_s3_bucket  = var.sql_backup_s3_bucket
   sql_backup_s3_key     = var.sql_backup_s3_key
   sql_backup_local_path = var.sql_backup_local_path
+
+  # Lambda Configuration
+  lambda_runtime        = var.lambda_runtime
+  lambda_timeout        = var.lambda_timeout
+  lambda_memory_size    = var.lambda_memory_size
+  lambda_layer_mappings = var.lambda_layer_mappings
+  lambda_layers = {
+    for name, layer in module.backend.lambda_layers : name => layer.arn
+  }
 
   #common_tags           = local.common_tags
 }

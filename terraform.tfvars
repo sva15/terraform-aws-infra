@@ -43,6 +43,8 @@ lambda_memory_size = 512
 lambda_layer_mappings = {
   "alb-lambda" = ["alb-layer"]
   "sns-lambda" = ["sns-layer"]
+  "db-restore" = ["lambda-deps-layer"]
+
   # Add more mappings as needed
   # "function_name" = ["layer1", "layer2"]
 }

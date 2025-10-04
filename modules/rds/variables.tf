@@ -187,3 +187,35 @@ variable "common_tags" {
   type        = map(string)
   default     = {}
 }
+
+# Lambda Configuration (to match backend module)
+variable "lambda_runtime" {
+  description = "Runtime for Lambda functions"
+  type        = string
+  default     = "python3.12"
+}
+
+variable "lambda_timeout" {
+  description = "Timeout for Lambda functions in seconds"
+  type        = number
+  default     = 300
+}
+
+variable "lambda_memory_size" {
+  description = "Memory size for Lambda functions in MB"
+  type        = number
+  default     = 512
+}
+
+# Lambda Layer Configuration
+variable "lambda_layer_mappings" {
+  description = "Map of Lambda function names to their required layers"
+  type        = map(list(string))
+  default     = {}
+}
+
+variable "lambda_layers" {
+  description = "Map of layer names to their ARNs"
+  type        = map(string)
+  default     = {}
+}

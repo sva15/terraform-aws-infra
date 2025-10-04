@@ -27,8 +27,17 @@ deploy_database = true
 postgres_db_name = "ifrs_dev"
 postgres_user = "ifrs_user"
 use_secrets_manager = true
-pgladmin_email = "admin@yourdomain.com"
+pgadmin_email = "admin@yourdomain.com"
 pgadmin_password = "your-secure-password"
+
+# Lambda Layer Configuration
+lambda_layer_mappings = {
+  "alb-lambda" = ["alb-layer"]
+  "sns-lambda" = ["sns-layer"]
+  "db-restore" = ["lambda-deps-layer"]
+  # Add more mappings as needed
+  # "function_name" = ["layer1", "layer2"]
+}
 
 # Example usage scenarios:
 # 

@@ -95,5 +95,12 @@ module "rds" {
   sql_backup_s3_key     = var.sql_backup_s3_key
   sql_backup_local_path = var.sql_backup_local_path
 
+  # Lambda Configuration
+  lambda_runtime        = var.lambda_runtime
+  lambda_timeout        = var.lambda_timeout
+  lambda_memory_size    = var.lambda_memory_size
+  lambda_layer_mappings = var.lambda_layer_mappings
+  lambda_layers         = var.lambda_layers
+
   common_tags = var.common_tags
 }
