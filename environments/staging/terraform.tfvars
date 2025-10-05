@@ -6,10 +6,9 @@ project_name       = "IFRS-InsightGen"
 iam_role_prefix    = "HCL-User-Role"
 project_short_name = "insightgen"
 
-# Network Configuration
+# Network Configuration (Private Subnets Only)
 vpc_name               = "default"
 subnet_names           = ["default-subnet-1", "default-subnet-2"]
-public_subnet_names    = ["default-public-subnet-1"]
 security_group_names   = ["default"]
 
 # Lambda Configuration

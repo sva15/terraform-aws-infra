@@ -25,11 +25,11 @@ output "lambda_info" {
 }
 
 output "ec2_info" {
-  description = "EC2 module outputs"
+  description = "EC2 module outputs (private subnet only)"
   value = {
     instance_id = module.ec2.instance_id
-    public_ip   = module.ec2.public_ip
     private_ip  = module.ec2.private_ip
+    # Note: No public IP - instance deployed in private subnet for security
   }
 }
 

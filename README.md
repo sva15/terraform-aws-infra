@@ -87,11 +87,11 @@ project_name       = "IFRS-InsightGen"
 iam_role_prefix    = "YourCompany-User-Role"
 project_short_name = "ifrs-app"
 
-# Network Configuration (existing resources)
+# Network Configuration (existing resources - private subnets only)
 vpc_name               = "your-existing-vpc"
 subnet_names           = ["private-subnet-1", "private-subnet-2"]
-public_subnet_names    = ["public-subnet-1"]
 security_group_names   = ["app-security-group"]
+# Note: Only private subnets are used for security best practices
 ```
 
 ### **3. Deploy Other Environments:**

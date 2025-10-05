@@ -156,7 +156,7 @@ resource "aws_instance" "ui_server" {
   vpc_security_group_ids      = var.security_group_ids
   subnet_id                   = var.subnet_id
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
-  associate_public_ip_address = true
+  associate_public_ip_address = false  # Private subnet only - no public IP
 
   user_data = local.user_data
 

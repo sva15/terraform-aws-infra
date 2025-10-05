@@ -10,7 +10,7 @@ aws_region = "ap-south-1"
 vpc_name = "your-vpc-name"
 subnet_names = ["your-private-subnet-1", "your-private-subnet-2"]
 security_group_names = ["your-security-group"]
-public_subnet_names = ["your-public-subnet"]
+# Note: Only private subnets are used for security best practices
 
 # UI Configuration
 ui_s3_bucket = "your-ui-build-bucket"  # S3 bucket containing UI assets

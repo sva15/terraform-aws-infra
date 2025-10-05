@@ -76,9 +76,9 @@ output "s3_bucket" {
     arn  = var.artifacts_s3_bucket != "" ? data.aws_s3_bucket.existing_artifacts[0].arn : aws_s3_bucket.artifacts[0].arn
     paths = {
       lambdas       = "lambdas/"
-      lambda_layers = "lambda-layers/"
-      ui_assets     = "ui/"
-      database      = "database/"
+      lambda_layers = "layers/"      # Updated to match existing structure
+      ui_assets     = "ui-build/"    # Updated to match existing structure
+      database      = "postgres/"    # Updated to match existing structure
     }
   } : null
 }

@@ -58,17 +58,7 @@ data "aws_subnets" "selected" {
   }
 }
 
-data "aws_subnets" "public" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.selected.id]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = var.public_subnet_names
-  }
-}
+# Public subnets removed - using private subnets only for security
 
 data "aws_security_groups" "selected" {
   filter {
@@ -152,7 +142,7 @@ module "ec2" {
   iam_role_prefix    = var.iam_role_prefix
   project_short_name = var.project_short_name
   vpc_id             = data.aws_vpc.selected.id
-  subnet_id          = length(data.aws_subnets.public.ids) > 0 ? data.aws_subnets.public.ids[0] : null
+  subnet_id          = length(data.aws_subnets.selected.ids) > 0 ? data.aws_subnets.selected.ids[0] : null
   security_group_ids = data.aws_security_groups.selected.ids
   instance_type      = var.instance_type
   create_key_pair    = var.create_key_pair

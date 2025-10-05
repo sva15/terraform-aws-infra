@@ -36,11 +36,7 @@ variable "subnet_names" {
   default     = ["default-subnet-1", "default-subnet-2"]
 }
 
-variable "public_subnet_names" {
-  description = "List of public subnet names"
-  type        = list(string)
-  default     = ["default-public-subnet-1"]
-}
+# Public subnets removed - using private subnets only for security
 
 variable "security_group_names" {
   description = "List of security group names"

@@ -40,18 +40,7 @@ data "aws_subnets" "private" {
   }
 }
 
-# Data source for public subnets
-data "aws_subnets" "public" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.selected.id]
-  }
-
-  filter {
-    name   = "tag:Name"
-    values = var.public_subnet_names
-  }
-}
+# Public subnets removed - using private subnets only for security
 
 # Data source for security groups
 data "aws_security_groups" "selected" {

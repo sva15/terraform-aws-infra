@@ -6,14 +6,16 @@ resource "aws_lambda_layer_version" "layers" {
   description         = "Lambda layer for ${each.value}"
   compatible_runtimes = [var.lambda_runtime]
 
-  # Conditional source based on use_local_source variable and S3 bucket availability
-  filename         = var.use_local_source && local.actual_bucket_name == "" ? "${var.lambda_layers_local_path}/${each.value}.zip" : null
-  source_code_hash = var.use_local_source && local.actual_bucket_name == "" ? filebase64sha256("${var.lambda_layers_local_path}/${each.value}.zip") : null
+  # Conditional source based on layer availability (local vs S3)
+  # Use local file if: local path provided AND layer exists locally AND no S3 bucket
+  filename         = var.lambda_layers_local_path != "" && contains(local.local_layer_names, each.value) && local.actual_bucket_name == "" ? "${var.lambda_layers_local_path}/${each.value}.zip" : null
+  source_code_hash = var.lambda_layers_local_path != "" && contains(local.local_layer_names, each.value) && local.actual_bucket_name == "" ? filebase64sha256("${var.lambda_layers_local_path}/${each.value}.zip") : null
 
-  # S3 source (either from existing bucket or uploaded to created bucket)
-  s3_bucket         = local.actual_bucket_name != "" ? local.actual_bucket_name : null
-  s3_key            = local.actual_bucket_name != "" ? "lambda-layers/${each.value}.zip" : null
-  s3_object_version = var.use_local_source && local.actual_bucket_name != "" ? aws_s3_object.lambda_layers["${each.value}.zip"].version_id : null
+  # S3 source (for existing S3 layers or uploaded local layers)
+  s3_bucket = local.actual_bucket_name != "" ? local.actual_bucket_name : null
+  s3_key    = local.actual_bucket_name != "" ? "layers/${each.value}.zip" : null
+  # Only use version if layer was uploaded from local (exists in aws_s3_object.lambda_layers)
+  s3_object_version = var.use_local_source && local.actual_bucket_name != "" && contains(local.local_layer_names, each.value) ? aws_s3_object.lambda_layers["${each.value}.zip"].version_id : null
 
   depends_on = [
     aws_s3_object.lambda_layers

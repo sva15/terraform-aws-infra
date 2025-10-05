@@ -5,18 +5,18 @@ output "instance_id" {
   value       = aws_instance.ui_server.id
 }
 
-output "instance_public_ip" {
-  description = "Public IP address of the EC2 instance (null - no public IP assigned)"
+output "public_ip" {
+  description = "Public IP address (null - private subnet deployment for security)"
   value       = null
 }
 
-output "instance_private_ip" {
+output "private_ip" {
   description = "Private IP address of the EC2 instance"
   value       = aws_instance.ui_server.private_ip
 }
 
-output "instance_public_dns" {
-  description = "Public DNS name of the EC2 instance (null - no public IP assigned)"
+output "public_dns" {
+  description = "Public DNS name (null - private subnet deployment for security)"
   value       = null
 }
 

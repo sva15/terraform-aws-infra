@@ -1,49 +1,56 @@
 # Development Environment Configuration
 
 # Basic Configuration
-aws_region         = "us-east-1"
+aws_region         = "ap-south-1"
 project_name       = "IFRS-InsightGen"
 iam_role_prefix    = "HCL-User-Role"
 project_short_name = "insightgen"
 
-# Network Configuration
-vpc_name               = "default"
-subnet_names           = ["default-subnet-1", "default-subnet-2"]
-public_subnet_names    = ["default-public-subnet-1"]
-security_group_names   = ["default"]
+# Network Configuration (Private Subnets Only)
+vpc_name               = "ifrs-vpc-vpc"
+subnet_names           = ["ifrs-vpc-subnet-private1-ap-south-1a", "ifrs-vpc-subnet-private2-ap-south-1b"]
+security_group_names   = ["ifrs-vpc-sg"]
 
-# Lambda Configuration
+# Lambda Configuration (HYBRID: Local code + Mixed layers)
 lambda_prefix            = "dev-ifrs"
-use_local_source         = true
-artifacts_s3_bucket      = ""  # Leave empty to create new bucket
-create_s3_bucket         = true
-lambda_code_local_path   = "../../backend/python-aws-lambda-functions"
-lambda_layers_local_path = "../../backend/lambda-layers"
+use_local_source         = true                                    # Upload Lambda code from local
+artifacts_s3_bucket      = "filterrithas"                         # Existing S3 bucket
+create_s3_bucket         = false                                   # Don't create new bucket
+lambda_code_local_path   = "../../backend/python-aws-lambda-functions"  # Local Lambda code
+lambda_layers_local_path = "../../backend/lambda-layers"         # Local layers for db-restore function
 ui_assets_local_path     = "../../ui"
 lambda_runtime           = "python3.12"
 lambda_timeout           = 300
 lambda_memory_size       = 512
 
-# Lambda Layer Mappings
+# Alternative local paths (commented for future use)
+# lambda_code_local_path   = "C:/path/to/your/lambda/functions"
+# lambda_layers_local_path = "C:/path/to/your/lambda/layers"
+# ui_assets_local_path     = "C:/path/to/your/ui/build"
+
+# Lambda Layer Mappings (mixed: S3 layers + local layer for db-restore)
 lambda_layer_mappings = {
-  "sns-lambda" = ["sns-layer"]
+  "sns-lambda" = ["sns-layer"]          # Use existing layer from S3
+  "alb-lambda" = ["alb-layer"]          # Use existing layer from S3
+  "db-restore" = ["lambda-deps-layer"]  # Use local layer for db-restore function
 }
 
 # SNS Configuration
 sns_topic_names = ["dev-ifrs-notifications"]
 lambda_sns_subscriptions = {
-  "dev-ifrs-notifications" = ["sns-lambda"]
+  "notifications" = ["sns-lambda"]
+  "alb-api-lambda" = ["alb-lambda"]
+  "db-restore" = ["db-restore"]
 }
 enable_sns_encryption = true
 
-# S3 Configuration
-create_s3_bucket = true
-s3_bucket_name   = "dev-ifrs-insightgen-bucket"
+# S3 Configuration (using existing bucket)
+# Note: artifacts_s3_bucket is set above in Lambda Configuration
 
 # UI Configuration
 use_local_ui_source  = true
 ui_assets_local_path = "../../ui"
-ui_path              = "/var/www/html"
+ui_path              = "ui-assets.zip"
 BASE_URL             = "http://localhost:8080"
 
 # ECR Configuration
@@ -53,16 +60,20 @@ ecr_repositories = ["dev-ifrs-app"]
 instance_type       = "t3.micro"
 create_key_pair     = true
 ami_owner           = "099720109477"
-ami_name_pattern    = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+ami_name_pattern    = "ubuntu/*"
 
 # Database Configuration
-postgres_db_name      = "ifrs_db"
+postgres_db_name      = "ifrs_dev"
 postgres_password     = "SecurePassword123!"
 postgres_port         = 5432
 use_secrets_manager   = true
 deploy_database       = true
 
-# SQL Backup Configuration (unified S3 bucket)
-sql_backup_s3_bucket  = ""  # Will use unified artifacts bucket
-sql_backup_s3_key     = ""  # Will use database/ folder structure
-sql_backup_local_path = "../../database/pg_backup"
+# SQL Backup Configuration (S3 path - existing files)
+sql_backup_s3_bucket  = "filterrithas"                    # Existing S3 bucket
+sql_backup_s3_key     = "postgres/ifrs_backup_20250928_144411.sql"  # Existing SQL file in S3
+sql_backup_local_path = ""                                 # Empty = use S3 files, not local
+
+# Alternative local SQL backup path (commented for future use)
+# sql_backup_local_path = "../../database/pg_backup"
+# sql_backup_local_path = "C:/path/to/your/sql/backups"

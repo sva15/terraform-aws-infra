@@ -3,7 +3,7 @@ terraform {
   backend "s3" {
     bucket       = "terraform-state-ifrs-dev"
     key          = "environments/dev/terraform.tfstate"
-    region       = "us-east-1"
+    region       = "ap-south-1"
     encrypt      = true
     use_lockfile = true  # S3 native state locking (replaces DynamoDB)
     

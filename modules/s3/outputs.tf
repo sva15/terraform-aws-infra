@@ -30,12 +30,12 @@ output "uploaded_artifacts_summary" {
   }
 }
 
-output "s3_bucket_paths" {
-  description = "S3 bucket folder structure"
+output "s3_folder_structure" {
+  description = "S3 bucket folder structure (matches existing bucket structure)"
   value = {
     lambdas       = "lambdas/"
-    lambda_layers = "lambda-layers/"
-    database      = "database/"
-    ui_assets     = "ui/"
+    lambda_layers = "layers/"      # Updated to match existing structure
+    database      = "postgres/"    # Updated to match existing structure  
+    ui_assets     = "ui-build/"    # Updated to match existing structure
   }
 }

@@ -89,12 +89,12 @@ resource "aws_s3_object" "lambda_code" {
   })
 }
 
-# Upload Lambda layer zip files to S3 (organized in lambda-layers/ folder)
+# Upload Lambda layer zip files to S3 (organized in layers/ folder to match existing structure)
 resource "aws_s3_object" "lambda_layers" {
   for_each = var.use_local_source && local.actual_bucket_name != "" ? toset(local.lambda_layer_files) : []
 
   bucket = local.actual_bucket_name
-  key    = "lambda-layers/${each.value}"
+  key    = "layers/${each.value}"  # Changed to match existing structure
   source = "${var.lambda_layers_local_path}/${each.value}"
   etag   = filemd5("${var.lambda_layers_local_path}/${each.value}")
 
@@ -121,12 +121,12 @@ resource "aws_s3_object" "sql_backups" {
   })
 }
 
-# Upload UI assets to S3 (organized in ui/ folder)
+# Upload UI assets to S3 (organized in ui-build/ folder to match existing structure)
 resource "aws_s3_object" "ui_assets" {
   for_each = var.use_local_source && local.actual_bucket_name != "" ? toset(local.ui_zip_file) : []
 
   bucket = local.actual_bucket_name
-  key    = "ui/${each.value}"
+  key    = "ui-build/${each.value}"  # Changed to match existing structure
   source = "${var.ui_assets_local_path}/${each.value}"
   etag   = filemd5("${var.ui_assets_local_path}/${each.value}")
 
