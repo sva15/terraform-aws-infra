@@ -10,6 +10,18 @@ variable "project_name" {
   type        = string
 }
 
+variable "iam_role_prefix" {
+  description = "Prefix for IAM role names"
+  type        = string
+  default     = "HCL-User-Role"
+}
+
+variable "project_short_name" {
+  description = "Short project name for IAM role naming"
+  type        = string
+  default     = "insightgen"
+}
+
 variable "lambda_prefix" {
   description = "Prefix for resource naming (to match with other modules)"
   type        = string
@@ -177,9 +189,22 @@ variable "sql_backup_s3_key" {
 }
 
 variable "sql_backup_local_path" {
-  description = "Local path to SQL backup file"
+  description = "Local path to SQL backup files directory (e.g., ../../database/pg_backup)"
+  type        = string
+  default     = "../../database/pg_backup"
+}
+
+# S3 Bucket Configuration (unified with Lambda module)
+variable "artifacts_s3_bucket" {
+  description = "S3 bucket name for all artifacts (shared with Lambda module)"
   type        = string
   default     = ""
+}
+
+variable "use_local_source" {
+  description = "Whether to use local files for DB restore Lambda"
+  type        = bool
+  default     = true
 }
 
 variable "common_tags" {

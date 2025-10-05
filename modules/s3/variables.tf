@@ -1,4 +1,4 @@
-# S3 Module Variables
+# S3 Module Variables - Unified Artifacts Bucket
 
 variable "environment" {
   description = "Environment name (dev, int, prod)"
@@ -10,28 +10,48 @@ variable "project_name" {
   type        = string
 }
 
-variable "create_ui_bucket" {
-  description = "Whether to create S3 bucket for UI assets"
+# Unified S3 Bucket Configuration
+variable "create_artifacts_bucket" {
+  description = "Whether to create unified S3 bucket for all artifacts"
   type        = bool
   default     = true
 }
 
-variable "ui_bucket_name" {
-  description = "Name of S3 bucket for UI assets (if not provided, will be auto-generated)"
+variable "artifacts_bucket_name" {
+  description = "Name of existing S3 bucket for all artifacts (if empty, will create new bucket)"
   type        = string
   default     = ""
 }
 
-variable "use_local_ui_source" {
-  description = "Whether to upload UI assets from local directory"
+variable "use_local_source" {
+  description = "Whether to upload artifacts from local directories"
   type        = bool
   default     = true
 }
 
-variable "ui_assets_local_path" {
-  description = "Local path to UI assets directory"
+# Local paths for all artifact types
+variable "lambda_code_local_path" {
+  description = "Local path to Lambda function zip files"
   type        = string
-  default     = "./ui/dist"
+  default     = "../../backend/python-aws-lambda-functions"
+}
+
+variable "lambda_layers_local_path" {
+  description = "Local path to Lambda layer zip files"
+  type        = string
+  default     = "../../backend/lambda-layers"
+}
+
+variable "sql_backup_local_path" {
+  description = "Local path to SQL backup files"
+  type        = string
+  default     = "../../database/pg_backup"
+}
+
+variable "ui_assets_local_path" {
+  description = "Local path to UI assets (expecting ui-assets.zip)"
+  type        = string
+  default     = "../../ui"
 }
 
 variable "common_tags" {

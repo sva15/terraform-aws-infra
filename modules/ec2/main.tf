@@ -55,7 +55,7 @@ resource "local_file" "private_key" {
 
 # IAM role for EC2 instance
 resource "aws_iam_role" "ec2_role" {
-  name = "HCL-User-Role-insightgen-ec2-ui-${random_id.instance_profile_suffix.hex}"
+  name = "${var.iam_role_prefix}-${var.project_short_name}-ec2-ui-${random_id.instance_profile_suffix.hex}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -71,7 +71,7 @@ resource "aws_iam_role" "ec2_role" {
   })
 
   tags = merge(var.common_tags, {
-    Name   = "HCL-User-Role-insightgen-ec2-ui"
+    Name   = "${var.iam_role_prefix}-${var.project_short_name}-ec2-ui"
     Module = "ec2"
   })
 }

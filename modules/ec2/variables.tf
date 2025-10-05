@@ -10,6 +10,18 @@ variable "project_name" {
   type        = string
 }
 
+variable "iam_role_prefix" {
+  description = "Prefix for IAM role names"
+  type        = string
+  default     = "HCL-User-Role"
+}
+
+variable "project_short_name" {
+  description = "Short project name for IAM role naming"
+  type        = string
+  default     = "insightgen"
+}
+
 variable "vpc_id" {
   description = "VPC ID to deploy EC2 instance"
   type        = string

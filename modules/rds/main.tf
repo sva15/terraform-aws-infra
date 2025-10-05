@@ -23,10 +23,10 @@ resource "aws_kms_key" "rds_key" {
   deletion_window_in_days = 7
 
   tags = merge(var.common_tags, {
-    Name        = "HCL-User-Role-insightgen-rds-monitoring"
-    Description = "Enhanced monitoring role for RDS"
+    Name        = "${local.resource_name_prefix}-rds-key"
+    Description = "KMS key for RDS encryption"
     Module      = "rds"
-    Service     = "rds-monitoring"
+    Service     = "kms"
   })
 }
 
@@ -102,7 +102,7 @@ resource "aws_db_parameter_group" "main" {
 resource "aws_iam_role" "rds_enhanced_monitoring" {
   count = var.monitoring_interval > 0 ? 1 : 0
 
-  name = "HCL-User-Role-insightgen-rds-monitoring"
+  name = "${var.iam_role_prefix}-${var.project_short_name}-rds-monitoring"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -118,7 +118,7 @@ resource "aws_iam_role" "rds_enhanced_monitoring" {
   })
 
   tags = merge(var.common_tags, {
-    Name    = "HCL-User-Role-insightgen-rds-monitoring"
+    Name    = "${var.iam_role_prefix}-${var.project_short_name}-rds-monitoring"
     Module  = "rds"
     Service = "rds-monitoring"
   })
@@ -227,16 +227,66 @@ resource "aws_cloudwatch_log_group" "postgresql" {
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
+# Data source for existing S3 bucket (when artifacts_s3_bucket is provided)
+data "aws_s3_bucket" "existing_artifacts" {
+  count  = var.artifacts_s3_bucket != "" ? 1 : 0
+  bucket = var.artifacts_s3_bucket
+}
+
+# Get all SQL backup files from local directory
+locals {
+  sql_backup_files = var.use_local_source && var.sql_backup_local_path != "" ? fileset(var.sql_backup_local_path, "*.sql") : []
+}
+
+# Upload SQL backup files to S3 (organized in database/ folder)
+resource "aws_s3_object" "sql_backups" {
+  for_each = var.use_local_source && var.artifacts_s3_bucket != "" && var.sql_backup_local_path != "" ? toset(local.sql_backup_files) : []
+
+  bucket = var.artifacts_s3_bucket
+  key    = "database/${each.value}"
+  source = "${var.sql_backup_local_path}/${each.value}"
+  etag   = filemd5("${var.sql_backup_local_path}/${each.value}")
+
+  tags = merge(var.common_tags, {
+    Name   = "sql-backup-${trimsuffix(each.value, ".sql")}"
+    Type   = "SQLBackup"
+    Module = "rds"
+  })
+}
+
+# Upload DB restore Lambda code to S3 (if using unified S3 bucket)
+resource "aws_s3_object" "db_restore_lambda" {
+  count = var.use_local_source && var.artifacts_s3_bucket != "" && ((var.sql_backup_s3_bucket != "" && var.sql_backup_s3_key != "") || var.sql_backup_local_path != "") ? 1 : 0
+
+  bucket = var.artifacts_s3_bucket
+  key    = "lambdas/db-restore.zip"
+  source = data.archive_file.db_restore_zip[0].output_path
+  etag   = filemd5(data.archive_file.db_restore_zip[0].output_path)
+
+  tags = merge(var.common_tags, {
+    Name   = "db-restore-lambda"
+    Type   = "LambdaFunction"
+    Module = "rds"
+  })
+}
+
 # Lambda function for SQL backup restoration (if backup is provided)
 resource "aws_lambda_function" "db_restore" {
   count = (var.sql_backup_s3_bucket != "" && var.sql_backup_s3_key != "") || var.sql_backup_local_path != "" ? 1 : 0
 
-  filename         = data.archive_file.db_restore_zip[0].output_path
-  function_name    = "${local.resource_name_prefix}-db-restore"
-  role             = aws_iam_role.db_restore_lambda[0].arn
-  handler          = "index.handler"
-  source_code_hash = data.archive_file.db_restore_zip[0].output_base64sha256
-  runtime          = var.lambda_runtime
+  # Conditional source based on S3 bucket availability
+  filename         = var.artifacts_s3_bucket == "" ? data.archive_file.db_restore_zip[0].output_path : null
+  source_code_hash = var.artifacts_s3_bucket == "" ? data.archive_file.db_restore_zip[0].output_base64sha256 : null
+
+  # S3 source (when using unified bucket)
+  s3_bucket         = var.artifacts_s3_bucket != "" ? var.artifacts_s3_bucket : null
+  s3_key            = var.artifacts_s3_bucket != "" ? "lambdas/db-restore.zip" : null
+  s3_object_version = var.use_local_source && var.artifacts_s3_bucket != "" ? aws_s3_object.db_restore_lambda[0].version_id : null
+
+  function_name = "${local.resource_name_prefix}-db-restore"
+  role          = aws_iam_role.db_restore_lambda[0].arn
+  handler       = "index.handler"
+  runtime       = var.lambda_runtime
   timeout          = var.lambda_timeout
   memory_size      = var.lambda_memory_size
   
@@ -268,9 +318,12 @@ resource "aws_lambda_function" "db_restore" {
         RDS_PORT            = tostring(var.db_port)
         DB_NAME             = var.db_name
         DB_USERNAME         = var.db_username
-        S3_BUCKET           = var.sql_backup_s3_bucket
-        S3_KEY              = var.sql_backup_s3_key
+        # Unified S3 bucket configuration
+        S3_BUCKET           = var.artifacts_s3_bucket != "" ? var.artifacts_s3_bucket : var.sql_backup_s3_bucket
+        S3_KEY              = var.artifacts_s3_bucket != "" ? "database/${basename(var.sql_backup_s3_key)}" : var.sql_backup_s3_key
+        S3_DATABASE_FOLDER  = "database/"
         USE_SECRETS_MANAGER = tostring(var.use_secrets_manager)
+        USE_UNIFIED_BUCKET  = tostring(var.artifacts_s3_bucket != "")
       },
       var.use_secrets_manager ? {
         DB_SECRET_NAME = aws_db_instance.main.master_user_secret[0].secret_arn
@@ -292,7 +345,7 @@ resource "aws_lambda_function" "db_restore" {
 resource "aws_iam_role" "db_restore_lambda" {
   count = (var.sql_backup_s3_bucket != "" && var.sql_backup_s3_key != "") || var.sql_backup_local_path != "" ? 1 : 0
 
-  name = "HCL-User-Role-insightgen-db-restore-lambda"
+  name = "${var.iam_role_prefix}-${var.project_short_name}-db-restore-lambda"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -308,7 +361,7 @@ resource "aws_iam_role" "db_restore_lambda" {
   })
 
   tags = merge(var.common_tags, {
-    Name    = "HCL-User-Role-insightgen-db-restore-lambda"
+    Name    = "${var.iam_role_prefix}-${var.project_short_name}-db-restore-lambda"
     Module  = "rds"
     Service = "lambda"
   })

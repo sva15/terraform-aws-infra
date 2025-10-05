@@ -1,411 +1,224 @@
-# AWS Full-Stack Application Deployment with Terraform
+# 🏢 IFRS InsightGen - AWS Infrastructure
 
-This Terraform project deploys a complete full-stack application with AWS Lambda backend functions and an Angular UI frontend, using a modular architecture for scalability and maintainability.
+> **Enterprise-grade Terraform infrastructure for IFRS financial reporting and analytics**
 
-## Features
+## 🎯 **What This Project Does**
 
-### Backend (Lambda Functions)
-- **Multi-Environment Support**: Deploy to dev, int, or prod environments with appropriate naming conventions
-- **Flexible Source Management**: Use local zip files or S3-stored artifacts
-- **Automatic S3 Upload**: Optionally create S3 bucket and upload local files
-- **Layer Management**: Conditional layer attachment based on function requirements
-- **VPC Integration**: Deploy Lambda functions within existing VPC infrastructure
-- **CloudWatch Integration**: Automatic log group creation for each function
-- **SNS Integration**: Automatic topic creation and Lambda function subscriptions
+**IFRS InsightGen** deploys a complete AWS infrastructure for **International Financial Reporting Standards (IFRS)** applications, providing:
 
-### Frontend (Angular UI)
-- **Containerized Deployment**: Angular app deployed via Docker containers
-- **ECR Integration**: Automatic ECR repository creation and management
-- **Private EC2 Hosting**: UI served from EC2 instance (no public IP) with nginx
-- **RDS Integration**: Connects to managed PostgreSQL database
-- **Health Monitoring**: Built-in health checks and auto-restart capabilities
+- **📊 Financial Data Processing** via serverless Lambda functions
+- **🌐 Web Application** with Angular UI hosted on EC2
+- **🗄️ PostgreSQL Database** for financial data storage
+- **📈 Real-time Analytics** through SNS event processing
+- **🔒 Secure Document Storage** in S3 buckets
+- **📱 Container Support** via ECR repositories
 
-### Database (RDS PostgreSQL)
-- **Managed Database**: AWS RDS PostgreSQL with automated backups
-- **Secrets Manager Integration**: Secure password management with AWS Secrets Manager
-- **SQL Backup Restoration**: Automatic restoration from S3 or local backup files
-- **Multi-AZ Support**: High availability configuration for production
-- **Performance Insights**: Enhanced monitoring and performance analysis
-- **Encryption**: KMS encryption for data at rest and credentials
-
-### Infrastructure
-- **Modular Architecture**: Separate modules for backend, frontend, ECR, EC2, S3, SNS, and RDS
-- **Consistent Tagging**: Global tagging strategy with project-level tags
-- **Security Best Practices**: Encrypted storage, standardized IAM roles, VPC isolation, and security groups
-- **Private Networking**: EC2 instances with no public IP for enhanced security
-- **IAM Role Standards**: All roles follow `HCL-User-Role-insightgen-servicename` naming convention
-
-## Security Features
-
-### Password Management
-- **AWS Secrets Manager**: RDS passwords are automatically generated and stored securely
-- **No Plain Text**: Passwords never appear in Terraform state or logs
-- **Automatic Rotation**: Support for automatic password rotation (configurable)
-
-### Network Security
-- **Private Subnets**: RDS and EC2 instances deployed in private subnets
-- **Access Control**:
-  - **IAM Roles**: Least privilege access with service-specific roles
-  - **Standardized Naming**: All IAM roles follow `HCL-User-Role-insightgen-servicename` pattern
-  - **Resource Isolation**: Clear boundaries between different services
-  - **Policy Segregation**: Separate policies for different access patterns
-
-### IAM Role Naming Convention
-All IAM roles in this project follow a standardized naming pattern:
-- **Pattern**: `HCL-User-Role-insightgen-servicename`
-- **Examples**:
-  - `HCL-User-Role-insightgen-lambda-execution` (Backend Lambda functions)
-  - `HCL-User-Role-insightgen-ec2-ui` (EC2 instance for UI hosting)
-  - `HCL-User-Role-insightgen-rds-monitoring` (RDS enhanced monitoring)
-  - `HCL-User-Role-insightgen-db-restore-lambda` (Database restore Lambda)
-
-### Encryption
-- **Data at Rest**: RDS storage encrypted with KMS
-- **Data in Transit**: SSL/TLS encryption for database connections
-- **Secrets Encryption**: Secrets Manager uses KMS encryption
-- **EBS Encryption**: EC2 instance storage encrypted
-
-## Project Structure
+## 🏗️ **Architecture**
 
 ```
-.
-├── main.tf                    # Root module orchestrating all components
-├── variables.tf               # Root module variables
-├── outputs.tf                 # Root module outputs
-├── terraform.tfvars.example   # Example configuration
-├── README.md                  # This documentation
-├── .gitignore                 # Git ignore rules
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Users/Web     │    │   Application   │    │   Data Layer    │
+│                 │    │     Layer       │    │                 │
+│  ┌───────────┐  │    │  ┌───────────┐  │    │  ┌───────────┐  │
+│  │ Angular   │  │◄──►│  │  Lambda   │  │◄──►│  │PostgreSQL │  │
+│  │    UI     │  │    │  │Functions  │  │    │  │ Database  │  │
+│  │   (EC2)   │  │    │  │           │  │    │  │   (RDS)   │  │
+│  └───────────┘  │    │  └───────────┘  │    │  └───────────┘  │
+│                 │    │       │         │    │                 │
+│  ┌───────────┐  │    │  ┌───────────┐  │    │  ┌───────────┐  │
+│  │Container  │  │    │  │   SNS     │  │    │  │    S3     │  │
+│  │Images     │  │    │  │ Topics    │  │    │  │ Buckets   │  │
+│  │  (ECR)    │  │    │  │           │  │    │  │           │  │
+│  └───────────┘  │    │  └───────────┘  │    │  └───────────┘  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+## 📁 **Project Structure**
+
+```
+terraform-aws-infra/
+├── environments/                    # 🎯 Environment-specific configurations
+│   ├── dev/main.tf                 # Development environment
+│   ├── staging/main.tf             # Staging environment  
+│   └── prod/main.tf                # Production environment
 │
-├── modules/                   # Terraform modules
-│   ├── backend/              # Lambda functions and layers
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   ├── locals.tf
-│   │   ├── iam.tf
-│   │   ├── lambda-layers.tf
-│   │   └── lambda-functions.tf
-│   │
-│   ├── frontend/             # UI application orchestration
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   │
-│   ├── ecr/                  # Container registries
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   │
-│   ├── s3/                   # S3 buckets for assets
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   │
-│   ├── ec2/                  # EC2 instance for UI hosting
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   └── user-data.sh
-│   │
-│   ├── sns/                  # SNS topics and subscriptions
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   │
-│   └── rds/                  # RDS PostgreSQL database
-│       ├── main.tf
-│       ├── variables.tf
-│       ├── outputs.tf
-│       └── db_restore.py
+├── modules/                         # 🧩 Reusable infrastructure modules
+│   ├── lambda/                     # Lambda functions & layers
+│   ├── ec2/                        # EC2 instances
+│   ├── rds/                        # PostgreSQL database
+│   ├── ecr/                        # Container registries
+│   ├── s3/                         # S3 buckets
+│   └── sns/                        # SNS topics
 │
-├── backend/                  # Backend Lambda code
-│   ├── python-aws-lambda-functions/
-│   │   ├── function1.zip
-│   │   ├── function2.zip
-│   │   └── sample_function.py
-│   └── lambda-layers/
-│       ├── layer1.zip
-│       └── layer2.zip
+├── global/                          # 🌐 Shared global resources
+│   ├── iam/                        # IAM roles and policies
+│   ├── networking/                 # VPC data sources
+│   ├── monitoring/                 # CloudWatch & alerts
+│   └── s3-backend/                 # Terraform state management
 │
-└── ui/                       # Frontend Angular application
-    ├── dist/                 # Angular build output (ng build)
-    ├── Dockerfile           # Docker configuration
-    ├── default.conf         # Nginx configuration
-    ├── package.json         # Node.js dependencies
-    └── build-and-push.ps1   # Build and push script
+├── scripts/                         # 🔧 Automation scripts
+├── docs/                           # 📚 Documentation
+├── backend/                        # 🐍 Application code
+├── database/                       # 🗄️ Database files
+└── ui/                             # 🅰️ Angular UI code
 ```
 
-## Prerequisites
+## 🚀 **Quick Start**
 
-1. **AWS CLI** configured with appropriate credentials
-2. **Terraform** >= 1.0 installed
-3. **Docker** installed for building UI containers
-4. **Node.js and npm** for Angular development (optional)
-5. **Backend Assets**:
-   - Python Lambda function zip files in `backend/python-aws-lambda-functions/`
-   - Lambda layer zip files in `backend/lambda-layers/`
-6. **Frontend Assets**:
-   - Angular build output in `ui/dist/` (from `ng build`)
-7. **Existing AWS Infrastructure**:
-   - VPC with appropriate name tag
-   - Private subnets for Lambda functions
-   - Public subnets for EC2 instance
-   - Security groups with appropriate name tags
+### **Prerequisites:**
+- AWS CLI configured with appropriate permissions
+- Terraform >= 1.0 installed
+- Existing VPC, subnets, and security groups
 
-## Quick Start
-
-### 1. **Setup Configuration**:
+### **1. Deploy Development Environment:**
 ```bash
-# Copy the example configuration
-cp terraform.tfvars.example terraform.tfvars
-```
-
-Edit `terraform.tfvars` with your specific values:
-```hcl
-environment = "dev"
-vpc_name = "your-vpc-name"
-subnet_names = ["private-subnet-1", "private-subnet-2"]
-public_subnet_names = ["public-subnet-1", "public-subnet-2"]
-security_group_names = ["lambda-sg"]
-```
-
-### 2. **Prepare Backend Assets**:
-```bash
-# Backend assets are already in the correct location
-# backend/python-aws-lambda-functions/sample_function.py (example provided)
-# Place your Lambda function zip files in backend/python-aws-lambda-functions/
-# Place your Lambda layer zip files in backend/lambda-layers/
-```
-
-### 3. **Prepare Frontend Assets**:
-```bash
-# Build your Angular application
-cd ui
-ng build --configuration production
-
-# Verify dist folder exists
-ls dist/
-```
-
-### 4. **Deploy Infrastructure**:
-```bash
-# Initialize Terraform
+cd environments/dev
 terraform init
-
-# Plan the deployment
-terraform plan -var="environment=dev"
-
-# Apply the deployment
-terraform apply -var="environment=dev"
+terraform plan
+terraform apply
 ```
 
-### 5. **Build and Push UI Container**:
-After Terraform deployment completes, get the ECR repository URL from outputs:
+### **2. Configure Your Settings:**
+Edit `terraform.tfvars` in each environment:
+```hcl
+# Basic Configuration
+aws_region         = "us-east-1"
+project_name       = "IFRS-InsightGen"
+iam_role_prefix    = "YourCompany-User-Role"
+project_short_name = "ifrs-app"
+
+# Network Configuration (existing resources)
+vpc_name               = "your-existing-vpc"
+subnet_names           = ["private-subnet-1", "private-subnet-2"]
+public_subnet_names    = ["public-subnet-1"]
+security_group_names   = ["app-security-group"]
+```
+
+### **3. Deploy Other Environments:**
 ```bash
-# Get ECR repository URL
-terraform output frontend
+# Staging
+cd environments/staging
+terraform init && terraform apply
 
-# Build and push the UI container
-cd ui
-./build-and-push.ps1 -ECRRepository "YOUR_ECR_REPO_URL" -AWSRegion "us-east-1"
+# Production  
+cd environments/prod
+terraform init && terraform apply
 ```
 
-### 6. **Access Your Application**:
-```bash
-# Get the UI application URL
-terraform output quick_access
+## 🌍 **Multi-Environment Support**
+
+| Environment | Instance Size | Database | Backup Retention | Features |
+|-------------|---------------|----------|------------------|----------|
+| **Dev** | t3.micro | db.t3.micro | 7 days | Cost-optimized, local sources |
+| **Staging** | t3.small | db.t3.small | 14 days | Production-like, S3 sources |
+| **Production** | t3.medium | db.t3.medium | 30 days | High-availability, full security |
+
+## 🔒 **Security Features**
+
+### **IAM Role Naming:**
+All IAM roles follow a configurable pattern:
+```
+${iam_role_prefix}-${project_short_name}-service-name
 ```
 
-## Configuration
+**Examples:**
+- `HCL-User-Role-insightgen-lambda-execution`
+- `HCL-User-Role-insightgen-ec2-ui`
+- `HCL-User-Role-insightgen-rds-monitoring`
 
-Copy `terraform.tfvars.example` to `terraform.tfvars` and customize the values:
+### **Network Security:**
+- **VPC Isolation**: All resources in secure VPC
+- **Private Subnets**: Database and sensitive components isolated
+- **Security Groups**: Restrictive firewall rules
+- **Secrets Manager**: Secure credential management
 
-### Database Security Configuration
+## 📊 **What Gets Deployed**
 
-**Recommended (Secrets Manager):**
-```hcl
-use_secrets_manager = true  # Default: true
-postgres_password = ""      # Not needed when using Secrets Manager
-```
+### **Lambda Functions:**
+- **alb-lambda**: Application load balancer handler
+- **sns-lambda**: Event processing for financial data
+- **Runtime**: Python 3.12 with VPC access
 
-**Legacy (Plain Text Password):**
-```hcl
-use_secrets_manager = false
-postgres_password = "your-secure-password"
-```
+### **Web Application:**
+- **Frontend**: Angular UI on EC2
+- **Container Registry**: ECR for Docker images
+- **Load Balancing**: Application Load Balancer
 
-When `use_secrets_manager = true`:
-- RDS automatically generates a secure password
-- Password is stored in AWS Secrets Manager
-- Lambda functions retrieve password securely
-- No passwords in Terraform state or logs
+### **Database:**
+- **Engine**: PostgreSQL 15.4 on RDS
+- **Features**: Automated backups, encryption, monitoring
+- **Access**: VPC-only with Secrets Manager
 
-### Environment Naming
+### **Storage & Messaging:**
+- **S3 Buckets**: Code, assets, and document storage
+- **SNS Topics**: Real-time event processing
+- **CloudWatch**: Comprehensive monitoring and logging
 
-The project automatically handles environment-specific naming:
-
-- **Production** (`prod`): `insightgen-function-name`
-- **Development** (`dev`): `dev-insightgen-function-name`
-- **Integration** (`int`): `int-insightgen-function-name`
-
-### Layer Mappings
-
-Define which layers each function should use in `terraform.tfvars`:
-
-```hcl
-lambda_layer_mappings = {
-  "data-processor" = ["pandas-layer", "numpy-layer"]
-  "api-handler" = ["requests-layer"]
-  "ml-inference" = ["sklearn-layer", "pandas-layer"]
-}
-```
-
-### Source Management Options
-
-#### Option 1: Local Files with S3 Upload (Recommended)
-```hcl
-use_local_source = true
-create_s3_bucket = true
-```
-- Reads zip files from local directories
-- Creates S3 bucket automatically
-- Uploads files to S3 for Lambda deployment
-
-#### Option 2: Local Files Only
-```hcl
-use_local_source = true
-create_s3_bucket = false
-```
-- Deploys directly from local zip files
-- No S3 bucket creation
-
-#### Option 3: Existing S3 Sources
-```hcl
-use_local_source = false
-lambda_code_s3_bucket = "existing-code-bucket"
-lambda_layers_s3_bucket = "existing-layers-bucket"
-```
-- Uses existing S3 buckets
-- Expects zip files already uploaded
-
-## Key Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `environment` | Environment (dev/int/prod) | Required |
-| `vpc_name` | VPC name tag | Required |
-| `subnet_names` | List of subnet name tags | Required |
-| `security_group_names` | List of security group name tags | Required |
-| `use_local_source` | Use local files vs S3 | `true` |
-| `create_s3_bucket` | Create S3 bucket for uploads | `true` |
-| `lambda_layer_mappings` | Function to layer mappings | `{}` |
-| `use_secrets_manager` | Use AWS Secrets Manager for RDS password | `true` |
-| `postgres_password` | RDS password (only if secrets manager disabled) | `""` |
-| `deploy_database` | Whether to deploy RDS database | `true` |
-
-## Outputs
-
-The deployment provides comprehensive outputs:
-
-- **Lambda Functions**: ARNs, names, and configuration details
-- **Lambda Layers**: Layer ARNs and versions
-- **CloudWatch Log Groups**: Log group names and ARNs
-- **S3 Bucket**: Bucket information (if created)
-- **IAM Role**: Execution role details
-- **VPC Configuration**: Network configuration used
-- **RDS Database**: Connection information and instance details
-- **Secrets Manager**: Secret ARNs for database credentials
-- **ECR Repositories**: Container registry URLs
-- **EC2 Instance**: Instance details and connection information
-
-## Best Practices
-
-1. **Security First**: Always use `use_secrets_manager = true` for production deployments
-2. **IAM Role Naming**: Follow the `HCL-User-Role-insightgen-servicename` naming convention for all IAM roles
-3. **Layer Organization**: Group related dependencies in layers (e.g., data processing, API clients)
-4. **Function Naming**: Use descriptive names for zip files as they become function names
-5. **Environment Separation**: Use separate AWS accounts or regions for different environments
-6. **Tagging**: Leverage the global tagging strategy for cost allocation and resource management
-7. **Network Security**: Deploy resources in private subnets with restrictive security groups
-8. **Encryption**: Enable encryption for all data at rest and in transit
-9. **Access Control**: Use IAM roles with least privilege principles
-10. **Monitoring**: Enable CloudWatch logging and monitoring for all resources
-11. **Backup Strategy**: Configure appropriate backup retention periods for production
-
-## Troubleshooting
-
-### Common Issues
-
-1. **VPC/Subnet Not Found**: Verify the name tags match exactly
-2. **Zip File Not Found**: Ensure zip files exist in the specified directories
-3. **Layer Not Attached**: Check that layer names in mappings match actual layer file names
-4. **Permission Denied**: Verify AWS credentials and IAM permissions
-5. **Database Connection Failed**: Check if Lambda has Secrets Manager permissions
-6. **Secret Not Found**: Verify RDS instance was created with managed password enabled
-
-### Debugging
+## 🛠️ **Automation Scripts**
 
 ```bash
-# Check Terraform plan
-terraform plan -detailed-exitcode
+# Complete infrastructure setup
+./scripts/setup.sh
 
-# Validate configuration
-terraform validate
+# Validate all configurations
+./scripts/validate.sh
 
-# Check AWS resources
-aws lambda list-functions --query 'Functions[?starts_with(FunctionName, `dev-insightgen-`)]'
+# Plan and apply changes
+./scripts/plan_apply.sh dev apply
 
-# Check RDS instances
-aws rds describe-db-instances --query 'DBInstances[?starts_with(DBInstanceIdentifier, `dev-insightgen-`)]'
-
-# Check Secrets Manager secrets
-aws secretsmanager list-secrets --query 'SecretList[?starts_with(Name, `dev-insightgen-`)]'
-
-# Test database connectivity (from Lambda)
-aws lambda invoke --function-name dev-insightgen-db-restore response.json
+# Cleanup resources
+./scripts/cleanup.sh temp-files
 ```
 
-## Customization
+## 📈 **Monitoring & Operations**
 
-### Adding Custom IAM Policies
+### **CloudWatch Integration:**
+- **Dashboards**: System overview and performance metrics
+- **Alarms**: Automated alerting for critical issues
+- **Logs**: Centralized logging for all components
 
-Extend the IAM policy in `data.tf`:
+### **Operational Features:**
+- **Auto Backup**: Automated database backups
+- **Performance Monitoring**: RDS and Lambda metrics
+- **Error Alerting**: SNS notifications for failures
+- **Audit Logging**: Complete audit trail
 
-```hcl
-data "aws_iam_policy_document" "lambda_execution_policy" {
-  # Existing statements...
-  
-  statement {
-    effect = "Allow"
-    actions = ["s3:GetObject", "s3:PutObject"]
-    resources = ["arn:aws:s3:::your-bucket/*"]
-  }
-}
-```
+## 📚 **Documentation**
 
-### Environment Variables
+- **[GETTING_STARTED.md](GETTING_STARTED.md)**: Step-by-step deployment guide
+- **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)**: Comprehensive project documentation
+- **[DEPLOYMENT_SUMMARY.md](DEPLOYMENT_SUMMARY.md)**: Complete project status and structure
+- **[docs/](docs/)**: Additional technical documentation
 
-Customize per-function environment variables in `lambda-functions.tf`:
+## 🎯 **Business Value**
 
-```hcl
-environment {
-  variables = {
-    ENVIRONMENT = var.environment
-    PROJECT     = var.project_name
-    FUNCTION    = each.value
-    # Add custom variables here
-    DATABASE_URL = var.database_url
-  }
-}
-```
+### **For Financial Teams:**
+- **📈 IFRS Compliance**: Automated compliance reporting
+- **⚡ Real-time Insights**: Live financial data processing
+- **📋 Standardized Reports**: Consistent IFRS report generation
 
-## Contributing
+### **For IT Teams:**
+- **🏗️ Scalable Architecture**: Auto-scaling based on demand
+- **🔒 Security First**: Enterprise-grade security controls
+- **📊 Monitoring**: Comprehensive logging and alerting
 
-1. Follow Terraform best practices
-2. Update documentation for any new features
-3. Test with multiple environments
-4. Ensure backward compatibility
+### **For Business:**
+- **💰 Cost Effective**: Pay-as-you-use serverless components
+- **⚡ High Performance**: Optimized for financial workloads
+- **🌐 Global Ready**: Multi-region deployment capable
 
-## License
+## 🔧 **Customization**
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+The infrastructure is highly configurable:
+
+- **🏷️ Naming**: Customize all resource names and tags
+- **📏 Sizing**: Adjust instance sizes per environment
+- **🌐 Networking**: Use your existing VPC and subnets
+- **🔒 Security**: Configure your IAM roles and policies
+- **📊 Monitoring**: Enable/disable monitoring features
+
+---
+
+**🎉 IFRS InsightGen provides a complete, secure, and scalable AWS infrastructure for financial reporting and analytics applications!**
+
+For detailed information, see **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)**
