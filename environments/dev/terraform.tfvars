@@ -37,9 +37,7 @@ lambda_layer_mappings = {
 # SNS Configuration
 sns_topic_names = ["dev-ifrs-notifications"]
 lambda_sns_subscriptions = {
-  "notifications" = ["sns-lambda"]
-  "alb-api-lambda" = ["alb-lambda"]
-  "db-restore" = ["db-restore"]
+  "dev-ifrs-notifications" = ["sns-lambda"]
 }
 enable_sns_encryption = true
 
