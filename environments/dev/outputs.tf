@@ -43,8 +43,8 @@ output "ecr_info" {
 output "rds_info" {
   description = "RDS module outputs"
   value = {
-    endpoint = module.rds.endpoint
-    port     = module.rds.port
+    endpoint = module.rds.db_instance_endpoint
+    port     = module.rds.db_instance_port
   }
 }
 
