@@ -18,7 +18,6 @@ artifacts_s3_bucket      = "filterrithas"                         # Existing S3 
 create_s3_bucket         = false                                   # Don't create new bucket
 lambda_code_local_path   = "../../backend/python-aws-lambda-functions"  # Local Lambda code
 lambda_layers_local_path = "../../backend/lambda-layers"         # Local layers for db-restore function
-ui_assets_local_path     = "../../ui"
 lambda_runtime           = "python3.12"
 lambda_timeout           = 300
 lambda_memory_size       = 512
