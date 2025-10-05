@@ -30,6 +30,29 @@ output "debug_db_restore_layers" {
   } : null
 }
 
+# Debug output for Lambda VPC configuration
+output "debug_db_restore_vpc" {
+  description = "Debug VPC configuration for db-restore function"
+  value = (var.sql_backup_s3_bucket != "" && var.sql_backup_s3_key != "") || var.sql_backup_local_path != "" ? {
+    subnet_ids_provided = var.subnet_ids
+    security_group_ids_provided = var.security_group_ids
+    subnet_count = length(var.subnet_ids)
+    security_group_count = length(var.security_group_ids)
+    vpc_config_enabled = length(var.subnet_ids) > 0 && length(var.security_group_ids) > 0
+    rds_endpoint = aws_db_instance.main.endpoint
+  } : null
+}
+
+# Debug output for RDS security groups
+output "debug_rds_security_groups" {
+  description = "Debug RDS security group configuration"
+  value = {
+    rds_security_groups_used = aws_db_instance.main.vpc_security_group_ids
+    lambda_security_groups_used = var.security_group_ids
+    security_groups_match = toset(aws_db_instance.main.vpc_security_group_ids) == toset(var.security_group_ids)
+  }
+}
+
 output "db_instance_hosted_zone_id" {
   description = "RDS instance hosted zone ID"
   value       = aws_db_instance.main.hosted_zone_id

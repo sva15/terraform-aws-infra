@@ -103,6 +103,29 @@ def handler(event, context):
         
         logger.info(f"Starting database restoration for {db_name} on {rds_endpoint}:{rds_port}")
         
+        # Debug: Log environment info
+        logger.info(f"Lambda function environment:")
+        logger.info(f"  - AWS_REGION: {os.environ.get('AWS_REGION', 'Not set')}")
+        logger.info(f"  - USE_SECRETS_MANAGER: {os.environ.get('USE_SECRETS_MANAGER', 'Not set')}")
+        logger.info(f"  - S3_BUCKET: {s3_bucket}")
+        logger.info(f"  - S3_KEY: {s3_key}")
+        
+        # Debug: Check Lambda function configuration
+        try:
+            lambda_client = boto3.client('lambda')
+            function_name = context.function_name if context else 'unknown'
+            logger.info(f"Lambda function name: {function_name}")
+            
+            if context:
+                func_config = lambda_client.get_function_configuration(FunctionName=function_name)
+                vpc_config = func_config.get('VpcConfig', {})
+                logger.info(f"Lambda VPC Config:")
+                logger.info(f"  - VpcId: {vpc_config.get('VpcId', 'Not in VPC')}")
+                logger.info(f"  - SubnetIds: {vpc_config.get('SubnetIds', [])}")
+                logger.info(f"  - SecurityGroupIds: {vpc_config.get('SecurityGroupIds', [])}")
+        except Exception as e:
+            logger.warning(f"Could not get Lambda configuration: {str(e)}")
+        
         # Check if S3 backup is configured
         if not s3_bucket or not s3_key:
             logger.warning("No S3 backup configuration found, skipping restoration")
@@ -150,7 +173,36 @@ def handler(event, context):
             # Continue without waiting - the connection attempt will fail if RDS is not ready
         
         # Connect to PostgreSQL
-        logger.info("Connecting to PostgreSQL database...")
+        logger.info(f"Connecting to PostgreSQL database at {rds_endpoint}:{rds_port}...")
+        
+        # Test DNS resolution first
+        import socket
+        try:
+            logger.info(f"Testing DNS resolution for {rds_endpoint}...")
+            ip_address = socket.gethostbyname(rds_endpoint)
+            logger.info(f"DNS resolution successful: {rds_endpoint} -> {ip_address}")
+        except socket.gaierror as e:
+            logger.error(f"DNS resolution failed for {rds_endpoint}: {str(e)}")
+            logger.error("This usually indicates:")
+            logger.error("1. Lambda function is not in the same VPC as RDS")
+            logger.error("2. VPC DNS resolution is not enabled")
+            logger.error("3. Security groups are blocking access")
+            logger.error("4. Subnets don't have proper routing")
+            
+            # Check if Lambda is in VPC
+            if 'AWS_LAMBDA_RUNTIME_API' in os.environ:
+                logger.info("Lambda runtime detected")
+            
+            # Try to get network interface info
+            try:
+                import subprocess
+                result = subprocess.run(['ip', 'addr'], capture_output=True, text=True, timeout=5)
+                logger.info(f"Network interfaces: {result.stdout}")
+            except:
+                logger.info("Could not get network interface information")
+            
+            raise Exception(f"Cannot resolve RDS hostname {rds_endpoint}. Lambda function may not be in the correct VPC or DNS resolution is not working.")
+        
         connection = psycopg2.connect(
             host=rds_endpoint,
             port=rds_port,
