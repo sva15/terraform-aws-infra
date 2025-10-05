@@ -271,3 +271,4 @@ variable "sql_backup_local_path" {
   description = "Local path to SQL backup files directory"
   type        = string
   default     = "../../database/pg_backup"
+}
