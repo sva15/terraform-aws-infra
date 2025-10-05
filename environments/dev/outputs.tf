@@ -51,8 +51,8 @@ output "rds_info" {
 output "s3_info" {
   description = "S3 module outputs"
   value = {
-    bucket_name = module.s3.bucket_name
-    bucket_arn  = module.s3.bucket_arn
+    bucket_name = module.s3.artifacts_bucket_name
+    bucket_arn  = module.s3.artifacts_bucket_arn
   }
 }
 

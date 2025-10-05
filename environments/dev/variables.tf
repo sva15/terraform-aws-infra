@@ -12,6 +12,12 @@ variable "project_name" {
   default     = "IFRS-InsightGen"
 }
 
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "dev"
+}
+
 variable "iam_role_prefix" {
   description = "Prefix for IAM role names"
   type        = string
