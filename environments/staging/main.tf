@@ -101,6 +101,7 @@ module "lambda" {
   lambda_timeout           = var.lambda_timeout
   lambda_memory_size       = var.lambda_memory_size
   lambda_layer_mappings    = var.lambda_layer_mappings
+  lambda_env_vars          = var.lambda_env_vars
   sns_topic_names          = var.sns_topic_names
   lambda_sns_subscriptions = var.lambda_sns_subscriptions
   enable_sns_encryption    = var.enable_sns_encryption

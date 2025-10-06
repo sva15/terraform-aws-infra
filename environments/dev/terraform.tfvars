@@ -84,8 +84,6 @@ lambda_env_vars = {
   }
 
   "alb-lambda" = {
-    ENVIRONMENT = "dev"
-    PROJECT     = "ifrs"
     FUNCTION    = "alb-lambda"
     ALB_NAME    = "ifrs-alb"
   }

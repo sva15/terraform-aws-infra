@@ -278,3 +278,9 @@ variable "sql_backup_local_path" {
   type        = string
   default     = "../../database/pg_backup"
 }
+
+variable "lambda_env_vars" {
+  type        = map(map(string))
+  description = "Environment variables per Lambda function"
+  default     = {}
+}
