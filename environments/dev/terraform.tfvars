@@ -74,3 +74,28 @@ sql_backup_local_path = ""                                 # Empty = use S3 file
 # Alternative local SQL backup path (commented for future use)
 # sql_backup_local_path = "../../database/pg_backup"
 # sql_backup_local_path = "C:/path/to/your/sql/backups"
+
+lambda_env_vars = {
+  "sns-lambda" = {
+    ENVIRONMENT = "dev"
+    PROJECT     = "ifrs"
+    FUNCTION    = "sns-lambda"
+    TOPIC_NAME  = "dev-ifrs-notifications"
+  }
+
+  "alb-lambda" = {
+    ENVIRONMENT = "dev"
+    PROJECT     = "ifrs"
+    FUNCTION    = "alb-lambda"
+    ALB_NAME    = "ifrs-alb"
+  }
+
+  "db-restore" = {
+    ENVIRONMENT = "dev"
+    PROJECT     = "ifrs"
+    FUNCTION    = "db-restore"
+    DB_NAME     = "ifrs-db"
+    DB_USER     = "admin"
+  }
+}
+
