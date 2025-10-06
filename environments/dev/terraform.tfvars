@@ -54,10 +54,10 @@ BASE_URL             = "http://localhost:8080"
 ecr_repositories = ["dev-ifrs-app"]
 
 # EC2 Configuration
-instance_type       = "t3.micro"
+instance_type       = "t3.micro"          # x86_64 architecture
 create_key_pair     = true
-ami_owner           = "099720109477"
-ami_name_pattern    = "ubuntu/*"
+ami_owner           = "099720109477"       # Canonical (Ubuntu)
+ami_name_pattern    = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
 
 # Database Configuration
 postgres_db_name      = "ifrs_dev"

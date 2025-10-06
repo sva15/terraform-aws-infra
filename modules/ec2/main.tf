@@ -21,6 +21,11 @@ data "aws_ami" "selected" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
 }
 
 # Generate TLS private key for EC2 key pair
