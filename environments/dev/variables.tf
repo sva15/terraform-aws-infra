@@ -118,7 +118,11 @@ variable "lambda_layer_mappings" {
     "sns-lambda" = ["sns-layer"]
   }
 }
-
+variable "lambda_env_vars" {
+  type        = map(map(string))
+  description = "Environment variables per Lambda function"
+  default     = {}
+}
 variable "sns_topic_names" {
   description = "List of SNS topic names"
   type        = list(string)
