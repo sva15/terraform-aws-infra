@@ -31,7 +31,7 @@ lambda_layer_mappings = {
 # SNS Configuration
 sns_topic_names = ["staging-ifrs-notifications"]
 lambda_sns_subscriptions = {
-  "staging-ifrs-notifications" = ["sns-lambda"]
+  "sns-lambda" = ["staging-ifrs-notifications"]
 }
 enable_sns_encryption = true
 

@@ -37,7 +37,7 @@ lambda_layer_mappings = {
 # SNS Configuration
 sns_topic_names = ["dev-ifrs-notifications"]
 lambda_sns_subscriptions = {
-  "dev-ifrs-notifications" = ["sns-lambda"]
+  "sns-lambda" = ["dev-ifrs-notifications"]
 }
 enable_sns_encryption = true
 
@@ -84,6 +84,8 @@ lambda_env_vars = {
   }
 
   "alb-lambda" = {
+    ENVIRONMENT = "dev"
+    PROJECT     = "ifrs"
     FUNCTION    = "alb-lambda"
     ALB_NAME    = "ifrs-alb"
   }

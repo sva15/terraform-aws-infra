@@ -31,8 +31,7 @@ lambda_layer_mappings = {
 # SNS Configuration
 sns_topic_names = ["prod-ifrs-notifications", "prod-ifrs-alerts"]
 lambda_sns_subscriptions = {
-  "prod-ifrs-notifications" = ["sns-lambda"]
-  "prod-ifrs-alerts"        = ["sns-lambda"]
+  "sns-lambda" = ["prod-ifrs-notifications", "prod-ifrs-alerts"]
 }
 enable_sns_encryption = true
 
