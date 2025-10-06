@@ -52,12 +52,8 @@ resource "aws_lambda_function" "functions" {
 
   # Environment variables
   environment {
-    variables = {
-      ENVIRONMENT = var.environment
-      PROJECT     = var.project_name
-      FUNCTION    = each.value
-    }
-  }
+  variables = lookup(var.lambda_env_vars, each.value, {})
+}
 
   depends_on = [
     aws_iam_role_policy_attachment.lambda_execution_policy,
