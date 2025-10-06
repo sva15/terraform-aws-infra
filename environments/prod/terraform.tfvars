@@ -12,7 +12,7 @@ subnet_names           = ["prod-private-subnet-1", "prod-private-subnet-2"]
 security_group_names   = ["prod-app-sg", "prod-db-sg"]
 
 # Lambda Configuration
-lambda_prefix            = "prod-ifrs"
+lambda_prefix            = "ifrs"
 use_local_source         = false
 lambda_code_s3_bucket    = "prod-ifrs-lambda-code"
 lambda_layers_s3_bucket  = "prod-ifrs-lambda-layers"
@@ -29,9 +29,9 @@ lambda_layer_mappings = {
 }
 
 # SNS Configuration
-sns_topic_names = ["prod-ifrs-notifications", "prod-ifrs-alerts"]
+sns_topic_names = ["ifrs-notifications", "ifrs-alerts"]
 lambda_sns_subscriptions = {
-  "sns-lambda" = ["prod-ifrs-notifications", "prod-ifrs-alerts"]
+  "sns-lambda" = ["ifrs-notifications", "ifrs-alerts"]
 }
 enable_sns_encryption = true
 

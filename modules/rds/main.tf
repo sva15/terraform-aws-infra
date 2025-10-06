@@ -314,7 +314,7 @@ resource "aws_lambda_function" "db_restore" {
   environment {
     variables = merge(
       {
-        RDS_ENDPOINT        = aws_db_instance.main.endpoint
+        RDS_ENDPOINT        = split(":", aws_db_instance.main.endpoint)[0]
         RDS_PORT            = tostring(var.db_port)
         DB_NAME             = var.db_name
         DB_USERNAME         = var.db_username

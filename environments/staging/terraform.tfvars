@@ -12,7 +12,7 @@ subnet_names           = ["default-subnet-1", "default-subnet-2"]
 security_group_names   = ["default"]
 
 # Lambda Configuration
-lambda_prefix            = "staging-ifrs"
+lambda_prefix            = "ifrs"
 use_local_source         = false
 lambda_code_s3_bucket    = "staging-ifrs-lambda-code"
 lambda_layers_s3_bucket  = "staging-ifrs-lambda-layers"
@@ -29,9 +29,9 @@ lambda_layer_mappings = {
 }
 
 # SNS Configuration
-sns_topic_names = ["staging-ifrs-notifications"]
+sns_topic_names = ["ifrs-notifications"]
 lambda_sns_subscriptions = {
-  "sns-lambda" = ["staging-ifrs-notifications"]
+  "sns-lambda" = ["ifrs-notifications"]
 }
 enable_sns_encryption = true
 

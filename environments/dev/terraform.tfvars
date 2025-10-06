@@ -12,15 +12,15 @@ subnet_names           = ["ifrs-vpc-subnet-private1-ap-south-1a", "ifrs-vpc-subn
 security_group_names   = ["ifrs-vpc-sg"]
 
 # Lambda Configuration (HYBRID: Local code + Mixed layers)
-lambda_prefix            = "dev-ifrs"
+lambda_prefix            = "ifrs"
 use_local_source         = true                                    # Upload Lambda code from local
 artifacts_s3_bucket      = "filterrithas"                         # Existing S3 bucket
 create_s3_bucket         = false                                   # Don't create new bucket
 lambda_code_local_path   = "../../backend/python-aws-lambda-functions"  # Local Lambda code
 lambda_layers_local_path = "../../backend/lambda-layers"         # Local layers for db-restore function
 lambda_runtime           = "python3.12"
-lambda_timeout           = 300
-lambda_memory_size       = 512
+lambda_timeout           = 900        # 15 minutes (maximum for Lambda)
+lambda_memory_size       = 1024      # Increased memory for better performance
 
 # Alternative local paths (commented for future use)
 # lambda_code_local_path   = "C:/path/to/your/lambda/functions"
@@ -35,9 +35,9 @@ lambda_layer_mappings = {
 }
 
 # SNS Configuration
-sns_topic_names = ["dev-ifrs-notifications"]
+sns_topic_names = ["ifrs-notifications"]
 lambda_sns_subscriptions = {
-  "sns-lambda" = ["dev-ifrs-notifications"]
+  "sns-lambda" = ["ifrs-notifications"]
 }
 enable_sns_encryption = true
 
